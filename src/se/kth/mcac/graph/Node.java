@@ -2,6 +2,7 @@ package se.kth.mcac.graph;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
@@ -9,22 +10,26 @@ import java.util.List;
  */
 public class Node {
 
-    private final long id; // Unique Vertex ID
+    private final String name; // Unique node name in the network.
+    private final int id;
+    private int communityId; // Community name
     private final List<Edge> edges;
-    private float lat, lon;
+    private double lat, lon;
     private Resource resource;
     private float reliability; // reliability rate
 
-    public Node(long id, float lat, float lon, float reliability, Resource resource) {
-        this(id);
+    public Node(int id, String name, double lat, double lon, float reliability, Resource resource) {
+        this(id, name);
         this.lat = lat;
         this.lon = lon;
         this.reliability = reliability;
         this.resource = resource;
     }
 
-    public Node(long id) {
+    public Node(int id, String name) {
         this.id = id;
+        this.name = name;
+        communityId = -1;
         edges = new LinkedList<>();
     }
 
@@ -40,9 +45,9 @@ public class Node {
     }
 
     /**
-     * @return the id
+     * @return the name
      */
-    public long getId() {
+    public int getId() {
         return id;
     }
 
@@ -52,41 +57,41 @@ public class Node {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Node && ((Node) obj).id == this.id;
+        return obj instanceof Node && (((Node) obj).getName() == null ? this.getName() == null : ((Node) obj).getName().equals(this.getName()));
     }
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 89 * hash + (int) (this.id ^ (this.id >>> 32));
+        int hash = 7;
+        hash = 79 * hash + Objects.hashCode(this.getName());
         return hash;
     }
 
     /**
      * @return the lat
      */
-    public float getLat() {
+    public double getLat() {
         return lat;
     }
 
     /**
      * @param lat the lat to set
      */
-    public void setLat(float lat) {
+    public void setLat(double lat) {
         this.lat = lat;
     }
 
     /**
      * @return the lon
      */
-    public float getLon() {
+    public double getLon() {
         return lon;
     }
 
     /**
      * @param lon the lon to set
      */
-    public void setLon(float lon) {
+    public void setLon(double lon) {
         this.lon = lon;
     }
 
@@ -116,6 +121,27 @@ public class Node {
      */
     public void setReliability(float reliability) {
         this.reliability = reliability;
+    }
+
+    /**
+     * @return the communityId
+     */
+    public int getCommunityId() {
+        return communityId;
+    }
+
+    /**
+     * @param communityId the communityId to set
+     */
+    public void setCommunityId(int communityId) {
+        this.communityId = communityId;
+    }
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
     }
 
     public class Resource {

@@ -21,13 +21,15 @@ public class QmpsuConvertor {
     public static final String ID = "id";
     public static final String BW = "bw";
     public static final String RTT = "rtt";
+    public static final String NODE_NAME = "id";
     public Random random = new Random();
 
     /**
      * Converts QMPSU's JSON file to Graph object.
+     *
      * @param jsonFile
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     public Graph convertToGraph(String jsonFile) throws IOException {
         Graph graph = new Graph();
@@ -40,30 +42,37 @@ public class QmpsuConvertor {
 
     private void extractGraph(JsonNode rootNode, Graph graph) {
         int n = rootNode.get(0).get("adjacencies").size();
+        int id = 0; // assigns an unique id starting from 0 to the nodes.
         for (int i = 2; i < n; i++) {
             JsonNode jNode = rootNode.get(i);
-            long id = jNode.get("id").longValue();
-            Node node = new Node(id);
+            String name = jNode.get(NODE_NAME).textValue();
+            Node node = new Node(id, name);
             graph.addNode(node);
             setNode(jNode, node);
+            id++;
         }
     }
 
     private void setNode(JsonNode jNode, Node node) {
         if (jNode.get("x") != null) {
-            float x = jNode.get("x").floatValue();
-            float y = jNode.get("y").floatValue();
+            double x = jNode.get("x").doubleValue();
+            double y = jNode.get("y").doubleValue();
             node.setLat(y);
             node.setLon(x);
             //TODO: Set resources and reliability
         } else {
-            System.out.println(String.format("node %s: no position is available.", jNode.get("id")));
+            System.out.println(String.format("node %s: no position is available.", jNode.get(NODE_NAME)));
             //TODO: Generate sample
         }
 
         JsonNode adjs = jNode.get(ADJACENCIES);
+        if (adjs == null) {
+            System.err.println(String.format("Node %s has no connections.", node.getName()));
+            return;
+        }
+
         for (int j = 0; j < adjs.size(); j++) {
-            Edge edge = new Edge(random.nextLong(), node.getId(), adjs.get(j).get(NODE_TO).longValue());
+            Edge edge = new Edge(random.nextLong(), node.getName(), adjs.get(j).get(NODE_TO).textValue());
             if (adjs.get(j).get(DATA).get(BW) != null && adjs.get(j).get(DATA).get(RTT) != null) {
                 edge.setBw(adjs.get(j).get(DATA).get(BW).floatValue());
                 edge.setLatency(adjs.get(j).get(DATA).get(RTT).floatValue());

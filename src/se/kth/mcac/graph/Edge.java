@@ -7,21 +7,21 @@ package se.kth.mcac.graph;
 public class Edge {
 
     private final long id; // Unique id;
-    private final long srcId; // source node
-    private final long dstId; // destination node;
+    private final String srcId; // source node
+    private final String dstId; // destination node;
     private float bw; // link bandwidth
     private float latency; // link latency
     private float reliability; // reliability rate
 
     // connection type
-    public Edge(long id, long src, long dst, float bw, float latency, float reliability) {
+    public Edge(long id, String src, String dst, float bw, float latency, float reliability) {
         this(id, src, dst);
         this.bw = bw;
         this.latency = latency;
         this.reliability = reliability;
     }
 
-    public Edge(long id, long src, long dst) {
+    public Edge(long id, String src, String dst) {
         this.id = id;
         this.srcId = src;
         this.dstId = dst;
@@ -37,14 +37,14 @@ public class Edge {
     /**
      * @return the src
      */
-    public long getSrc() {
+    public String getSrc() {
         return srcId;
     }
 
     /**
      * @return the dst
      */
-    public long getDst() {
+    public String getDst() {
         return dstId;
     }
 

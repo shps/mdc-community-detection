@@ -8,30 +8,34 @@ import java.util.HashMap;
  */
 public class Graph {
 
-    private final HashMap<Long, Node> nodes;
+    private final HashMap<String, Node> nodes;
 
     public Graph() {
         nodes = new HashMap();
     }
 
-    public HashMap<Long, Node> addNode(Node node) {
-        nodes.put(node.getId(), node);
+    public HashMap<String, Node> addNode(Node node) {
+        nodes.put(node.getName(), node);
         return nodes;
     }
 
     /**
      * @return the nodes
      */
-    public HashMap<Long, Node> getNodes() {
+    public HashMap<String, Node> getNodes() {
         return nodes;
     }
 
-    public boolean containsNode(long id) {
+    public boolean containsNode(String id) {
         return nodes.containsKey(id);
     }
 
-    public Node getNode(long id) {
+    public Node getNode(String id) {
         return nodes.get(id);
+    }
+
+    public int size() {
+        return nodes.size();
     }
 
 }
