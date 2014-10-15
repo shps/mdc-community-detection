@@ -1,5 +1,6 @@
 package se.kth.mcac.cd.db;
 
+import java.util.Arrays;
 import se.kth.mcac.cd.CommunityDetector;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
@@ -12,20 +13,22 @@ import se.kth.mcac.graph.Node;
 public class DiffusionBasedCommunityDetector implements CommunityDetector {
 
     public static final float CONVERGENCE_THRESHOLD = 0;
+    public static final short DEFAULT_ITERATION = 2;
 
     @Override
     public void findCommunities(Graph graph) {
         float[][] nodeColors = init(graph);
 
-        Node[] nodes = graph.getNodes();
+        Node[] nodes = graph.getNodes(); // Notice that the orther of nodes in this array has nothing to do with their node ID.
         float c = 1;
 
-        while (c > CONVERGENCE_THRESHOLD) {
+        for (int i = 0; i < DEFAULT_ITERATION; i++) {
+//        while (c > CONVERGENCE_THRESHOLD) {
             diffuseColors(nodes, nodeColors, graph);
             c = c - 0.25F; // TODO: Calculate c based on changes on the nodes' colors
         }
 
-        assignCommunities(nodes, nodeColors);
+        assignCommunities(graph, nodeColors);
     }
 
     private float[][] init(Graph graph) {
@@ -59,10 +62,18 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
         }
     }
 
-    private void assignCommunities(Node[] nodes, float[][] nodeColors) {
-        for (int i = 0; i < nodes.length; i++) {
-            int maxColor = findMaxColor(nodeColors[i]);
-            nodes[i].setCommunityId(maxColor);
+    private void assignCommunities(Graph graph, final float[][] nodeColors) {
+        for (Node n : graph.getNodes()) {
+            float[] colorsSum = Arrays.copyOf(nodeColors[n.getId()], nodeColors.length);
+            for (Edge e : n.getEdges()) {
+                int dstId = graph.getNode(e.getDst()).getId();
+                float[] neighborColors = nodeColors[dstId];
+                for (int i = 0; i < colorsSum.length; i++) {
+                    colorsSum[i] += neighborColors[i];
+                }
+            }
+            int maxColor = findMaxColor(colorsSum);
+            n.setCommunityId(maxColor);
         }
     }
 

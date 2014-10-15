@@ -12,6 +12,7 @@ public class Edge {
     private float bw; // link bandwidth
     private float latency; // link latency
     private float reliability; // reliability rate
+    private float weight = 0; // calculated weight of the edge.
 
     // connection type
     public Edge(long id, String src, String dst, float bw, float latency, float reliability) {
@@ -25,6 +26,19 @@ public class Edge {
         this.id = id;
         this.srcId = src;
         this.dstId = dst;
+    }
+
+    public void computeWeight() {
+        this.weight = (1 / 5) * bw + latency;
+    }
+
+    public float getWeight() {
+        if (weight == 0) {
+            this.computeWeight();
+        }
+
+//        return weight;
+        return 1;
     }
 
     /**
@@ -88,6 +102,13 @@ public class Edge {
      */
     public void setReliability(float reliability) {
         this.reliability = reliability;
+    }
+
+    /**
+     * @param weight the weight to set
+     */
+    public void setWeight(float weight) {
+        this.weight = weight;
     }
 
 }

@@ -11,7 +11,7 @@ import java.util.Objects;
 public class Node {
 
     private final String name; // Unique node name in the network.
-    private final int id;
+    private final int id; // Internal unique id assigned to each node starting from 0, to simplify the semantic and overhead of algorithms.
     private int communityId; // Community name
     private final List<Edge> edges;
     private double lat, lon;
@@ -53,6 +53,15 @@ public class Node {
 
     public List<Edge> getEdges() {
         return edges;
+    }
+
+    public Edge getEdge(String nodeId) {
+        for (Edge e : edges) {
+            if (e.getDst().equalsIgnoreCase(nodeId)) {
+                return e;
+            }
+        }
+        return null;
     }
 
     @Override

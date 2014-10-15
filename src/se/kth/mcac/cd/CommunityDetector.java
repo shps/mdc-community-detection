@@ -1,6 +1,5 @@
 package se.kth.mcac.cd;
 
-import java.util.List;
 import se.kth.mcac.graph.Graph;
 
 /**
@@ -11,10 +10,10 @@ public interface CommunityDetector {
 
     /**
      * Finds the communities of a given graph. The algorithm depends to the
-     * implementation of the community detector.
+     * implementation of the community detector. It sets the community id to each
+     * node and it depends to the caller how to use these ids.
      *
      * @param graph
-     * @return
      */
-    public List<Community> findCommunities(Graph graph);
+    public void findCommunities(Graph graph);
 }

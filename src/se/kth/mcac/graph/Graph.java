@@ -22,8 +22,9 @@ public class Graph {
     /**
      * @return the nodes
      */
-    public HashMap<String, Node> getNodes() {
-        return nodes;
+    public Node[] getNodes() {
+        Node[] nodesArray = new Node[nodes.size()];
+        return nodes.values().toArray(nodesArray);
     }
 
     public boolean containsNode(String id) {

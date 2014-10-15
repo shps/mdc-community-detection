@@ -10,12 +10,10 @@ import se.kth.mcac.graph.Graph;
 public class SGroup implements CommunityDetector {
 
     @Override
-    public List<Community> findCommunities(Graph g) {
+    public void findCommunities(Graph g) {
         float[][] relMatrix = computeRelevanceMatrix(g);
         List<Community> communities = OBOGroup(g, relMatrix);
         communities = MGroup(communities);
-
-        return communities;
     }
 
     private float[][] computeRelevanceMatrix(Graph g) {
