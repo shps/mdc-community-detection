@@ -30,8 +30,8 @@ public class QmpsuConvertor {
     private final List<Edge> noBwEdges = new LinkedList<>();
     private final List<Edge> noRttEdges = new LinkedList<>();
 
-    private static final float DEFAULT_BW = 20;
-    private static final float DEFAULT_RTT = 2;
+    private static final float DEFAULT_BW = 20f;
+    private static final float DEFAULT_RTT = 2f;
 
     /**
      * Converts QMPSU's JSON file to Graph object.
@@ -109,9 +109,6 @@ public class QmpsuConvertor {
             List<Edge> edges = n.getEdges();
             for (Edge e : edges) {
                 Node dst = graph.getNode(e.getDst());
-                if (dst == null)
-                    System.out.println(e.getDst());
-                
                 if (dst.getEdge(e.getSrc()) == null) {
                     Edge newEdge = new Edge(random.nextLong(), dst.getName(), e.getSrc());
                     newEdge.setBw(e.getBw());
@@ -127,15 +124,17 @@ public class QmpsuConvertor {
                 e.setBw(otherEdge.getBw());
             } else {
                 e.setBw(DEFAULT_BW);
+                otherEdge.setBw(DEFAULT_BW);
             }
         }
 
         for (Edge e : noRttEdges) {
             Edge otherEdge = graph.getNode(e.getDst()).getEdge(e.getSrc());
-            if (otherEdge.getBw() != 0) {
-                e.setBw(otherEdge.getBw());
+            if (otherEdge.getLatency() != 0) {
+                e.setLatency(otherEdge.getLatency());
             } else {
-                e.setBw(DEFAULT_RTT);
+                e.setLatency(DEFAULT_RTT);
+                otherEdge.setLatency(DEFAULT_RTT);
             }
         }
     }
