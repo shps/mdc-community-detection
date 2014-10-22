@@ -1,6 +1,8 @@
 package se.kth.mcac.graph;
 
 import java.util.HashMap;
+import java.util.Map;
+import se.kth.mcac.cd.Community;
 
 /**
  *
@@ -37,6 +39,23 @@ public class Graph {
 
     public int size() {
         return nodes.size();
+    }
+
+    /**
+     * Computes sum of all edge weights in O(n + e).
+     *
+     * @return
+     */
+    public double getSumOfWeights() {
+        double sum = 0;
+
+        for (Node n : getNodes()) {
+            for (Edge e : n.getEdges()) {
+                sum += e.getWeight();
+            }
+        }
+
+        return sum;
     }
 
 }

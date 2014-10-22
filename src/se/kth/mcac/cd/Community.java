@@ -10,7 +10,7 @@ import se.kth.mcac.graph.Node;
 public class Community {
 
     private final HashMap<String, Node> nodes = new HashMap();
-    private final int id;
+    private int id;
 
     public Community(int id) {
         this.id = id;
@@ -22,10 +22,15 @@ public class Community {
      * @param node
      * @return
      */
-    public HashMap<String, Node> addNode(Node node) {
+    public void addNode(Node node) {
         node.setCommunityId(getId());
         nodes.put(node.getName(), node);
-        return nodes;
+    }
+
+    public void addNodes(Node[] nodes) {
+        for (Node n : nodes) {
+            addNode(n);
+        }
     }
 
     /**
@@ -33,5 +38,31 @@ public class Community {
      */
     public int getId() {
         return id;
+    }
+
+    /**
+     * Set community id. O(community size).
+     *
+     * @param id
+     */
+    public void setId(int id) {
+        this.id = id;
+
+        for (Node n : getNodes()) {
+            n.setCommunityId(id);
+        }
+    }
+
+    /**
+     *
+     * @return
+     */
+    public Node[] getNodes() {
+        Node[] nodesArray = new Node[nodes.size()];
+        return nodes.values().toArray(nodesArray);
+    }
+
+    public Node getNode(String id) {
+        return nodes.get(id);
     }
 }
