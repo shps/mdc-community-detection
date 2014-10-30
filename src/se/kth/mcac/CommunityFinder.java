@@ -19,10 +19,10 @@ public class CommunityFinder {
     public static void main(String[] args) throws IOException {
         QmpsuConvertor convertor = new QmpsuConvertor();
         Graph g = convertor.convertToGraph(DEFAULT_FILE_DIR + "graph-5434e0f1.json");
-        CommunityDetector primaryDetector = new DiffusionBasedCommunityDetector();
-        primaryDetector.findCommunities(g);
-        CommunityDetector secondaryDetector = new MGroup();
-        secondaryDetector.findCommunities(g);
+        DiffusionBasedCommunityDetector primaryDetector = new DiffusionBasedCommunityDetector();
+        primaryDetector.findCommunities(g, 500);
+//        CommunityDetector secondaryDetector = new MGroup();
+//        secondaryDetector.findCommunities(g);
         CsvConvertor csvc = new CsvConvertor();
         csvc.convert(g, DEFAULT_FILE_DIR);
     }

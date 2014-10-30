@@ -31,7 +31,7 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
         Node[] nodes = graph.getNodes(); // Notice that the orther of nodes in this array has nothing to do with their node ID.
         float c = 1;
 
-        for (int i = 0; i < DEFAULT_ITERATION; i++) {
+        for (int i = 0; i < iteration; i++) {
 //        while (c > CONVERGENCE_THRESHOLD) {
             nodeColors = diffuseColors(nodes, nodeColors, graph);
             c = c - 0.25F; // TODO: Calculate c based on changes on the nodes' colors

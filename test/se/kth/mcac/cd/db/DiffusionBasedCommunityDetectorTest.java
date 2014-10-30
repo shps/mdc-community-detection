@@ -48,12 +48,12 @@ public class DiffusionBasedCommunityDetectorTest {
         g.addNode(n4);
         
         DiffusionBasedCommunityDetector detector = new DiffusionBasedCommunityDetector();
-        detector.findCommunities(g, 1);
+        detector.findCommunities(g, 2);
         
         assert n1.getCommunityId() == 0;
-        assert n2.getCommunityId() == 1;
-        assert n3.getCommunityId() == 1;
-        assert n4.getCommunityId() == 1;
+        assert n2.getCommunityId() == 0;
+        assert n3.getCommunityId() == 0;
+        assert n4.getCommunityId() == 0;
     }
 
 }
