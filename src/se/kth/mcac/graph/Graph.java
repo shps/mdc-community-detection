@@ -1,8 +1,6 @@
 package se.kth.mcac.graph;
 
 import java.util.HashMap;
-import java.util.Map;
-import se.kth.mcac.cd.Community;
 
 /**
  *
@@ -29,12 +27,12 @@ public class Graph {
         return nodes.values().toArray(nodesArray);
     }
 
-    public boolean containsNode(String id) {
-        return nodes.containsKey(id);
+    public boolean containsNode(String name) {
+        return nodes.containsKey(name);
     }
 
-    public Node getNode(String id) {
-        return nodes.get(id);
+    public Node getNode(String name) {
+        return nodes.get(name);
     }
 
     public int size() {
