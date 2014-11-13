@@ -49,6 +49,8 @@ public class TabSeparatedConvertor {
             n1.addEdge(new Edge(random.nextLong(), n1.getName(), n2.getName()));
             n2.addEdge(new Edge(random.nextLong(), n2.getName(), n1.getName()));
         }
+        
+        reader.close();
 
         return g;
     }

@@ -6,6 +6,8 @@ import se.kth.mcac.cd.db.DiffusionBasedCommunityDetector;
 import se.kth.mcac.cd.db.MGroup;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.util.CsvConvertor;
+import se.kth.mcac.util.ModularityComputer;
+import se.kth.mcac.util.ObjectSizeCalculator;
 import se.kth.mcac.util.QmpsuConvertor;
 import se.kth.mcac.util.TabSeparatedConvertor;
 
@@ -21,11 +23,25 @@ public class CommunityFinder {
 //        QmpsuConvertor convertor = new QmpsuConvertor();
 //        Graph g = convertor.convertToGraph(DEFAULT_FILE_DIR + "graph-5434e0f1.json");
         TabSeparatedConvertor convertor = new TabSeparatedConvertor();
-        Graph g = convertor.convertToGraph("/home/hooman/Desktop/diffusion results/dblp/com-dblp.ungraph.txt");
+        Graph g = convertor.convertToGraph("/home/hooman/Desktop/diffusion results/facebook_combined.txt");
+        System.out.println(String.format("Graph Nodes = %d, Edges = %d", g.size(), g.getNumOfEdges() / 2));
+//        Graph g = convertor.convertToGraph("/home/hooman/Desktop/diffusion results/guifi.json");
         DiffusionBasedCommunityDetector primaryDetector = new DiffusionBasedCommunityDetector();
-        primaryDetector.findCommunities(g, 500);
+        for (int round = 1; round < 100; round = round + 10) {
+            long before = System.currentTimeMillis();
+            primaryDetector.findCommunities(g, round);
+            long after = System.currentTimeMillis();
+            System.out.println(String.format("Computation time for %d round is %d", round, after - before));
 //        CommunityDetector secondaryDetector = new MGroup();
 //        secondaryDetector.findCommunities(g);
+            System.out.println(String.format("Number of Communities %d", g.getNumCommunities()));
+            
+            before = System.currentTimeMillis();
+            float modularity = ModularityComputer.compute(g);
+            after = System.currentTimeMillis();
+            System.out.println(String.format("Modularity = %f", modularity));
+            System.out.println(String.format("Computation time for modularity is %d", after - before));
+        }
         CsvConvertor csvc = new CsvConvertor();
         csvc.convertAndWrite(g, DEFAULT_FILE_DIR);
     }

@@ -1,6 +1,5 @@
 package se.kth.mcac.cd.db;
 
-import java.util.Arrays;
 import se.kth.mcac.cd.CommunityDetector;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
@@ -29,12 +28,8 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
         float[][] nodeColors = init(graph);
 
         Node[] nodes = graph.getNodes(); // Notice that the orther of nodes in this array has nothing to do with their node ID.
-        float c = 1;
-
         for (int i = 0; i < iteration; i++) {
-//        while (c > CONVERGENCE_THRESHOLD) {
             nodeColors = diffuseColors(nodes, nodeColors, graph);
-            c = c - 0.25F; // TODO: Calculate c based on changes on the nodes' colors
         }
 
         assignCommunities(graph, nodeColors);
@@ -43,7 +38,7 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
     private float[][] init(Graph graph) {
         float[][] nodeColors = new float[graph.size()][graph.size()];
         for (int i = 0; i < graph.size(); i++) {
-            nodeColors[i][i] = 1; // Every node a color.
+            nodeColors[i][i] = 1f;
         }
 
         return nodeColors;
@@ -52,7 +47,6 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
     private float[][] diffuseColors(Node[] nodes, float[][] nodeColors, Graph graph) {
 
         float[][] newColors = new float[nodeColors.length][nodeColors.length];
-
         for (Node n : nodes) {
             float wSum = 0;
             for (Edge e : n.getEdges()) {
@@ -66,9 +60,10 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
                 }
             }
 
-//            for (int i = 0; i < nodeColors.length; i++) {
-//                nodeColors[n.getId()][i] = 0;
-//            }
+            if (n.getEdges().size() <= 0) // It has atleast one neighbor to send the colors.
+            {
+                newColors[n.getId()] = nodeColors[n.getId()].clone();
+            }
         }
 
         return newColors;
@@ -76,26 +71,23 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
 
     private void assignCommunities(Graph graph, final float[][] nodeColors) {
         for (Node n : graph.getNodes()) {
-            float[] colorsSum = Arrays.copyOf(nodeColors[n.getId()], nodeColors.length);
+            float[] colorSum = nodeColors[n.getId()].clone();
             for (Edge e : n.getEdges()) {
                 int dstId = graph.getNode(e.getDst()).getId();
-                float[] neighborColors = nodeColors[dstId];
-                
-                
-                for (int i = 0; i < colorsSum.length; i++) {
-                    colorsSum[i] += neighborColors[i];
+                for (int i = 0; i < nodeColors.length; i++) {
+                    colorSum[i] += nodeColors[dstId][i];
                 }
             }
-            int maxColor = findMaxColor(colorsSum);
+            int maxColor = findMaxColor(colorSum);
             n.setCommunityId(maxColor);
         }
     }
 
     private int findMaxColor(float[] colors) {
-        int maxColor = 0;
-        float maxValue = colors[0];
-        for (int i = 1; i < colors.length; i++) {
-            if (colors[i] > maxValue || (colors[i] == maxValue && i < maxColor)) {
+        int maxColor = -1;
+        float maxValue = Float.MIN_VALUE;
+        for (int i = 0; i < colors.length; i++) {
+            if (colors[i] > maxValue || (colors[i] == maxValue && colors[i] < maxColor)) {
 
                 maxColor = i;
                 maxValue = colors[i];
@@ -104,6 +96,45 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
         }
 
         return maxColor;
+    }
+
+    class Color {
+
+        private int id;
+        private float color;
+
+        public Color(int id, float color) {
+            this.id = id;
+            this.color = color;
+        }
+
+        /**
+         * @return the id
+         */
+        public int getId() {
+            return id;
+        }
+
+        /**
+         * @param id the id to set
+         */
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        /**
+         * @return the color
+         */
+        public float getColor() {
+            return color;
+        }
+
+        /**
+         * @param color the color to set
+         */
+        public void setColor(float color) {
+            this.color = color;
+        }
     }
 
 }

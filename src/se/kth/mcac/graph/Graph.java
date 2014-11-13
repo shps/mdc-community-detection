@@ -1,6 +1,7 @@
 package se.kth.mcac.graph;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  *
@@ -56,4 +57,33 @@ public class Graph {
         return sum;
     }
 
+    /**
+     * Computes number of all edges O(n).
+     *
+     * @return
+     */
+    public int getNumOfEdges() {
+        int sum = 0;
+
+        for (Node n : getNodes()) {
+            sum += n.getEdges().size();
+        }
+
+        return sum;
+    }
+
+    /**
+     * Returns number of communities. Computation O(n).
+     * @return 
+     */
+    public int getNumCommunities() {
+        HashSet<Integer> communities = new HashSet<>();
+        for (Node n : getNodes()) {
+            communities.add(n.getCommunityId());
+        }
+
+        int size = communities.size();
+        communities = null;
+        return size;
+    }
 }

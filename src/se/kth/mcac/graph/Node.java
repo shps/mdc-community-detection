@@ -43,6 +43,15 @@ public class Node {
         edges.add(e);
         return edges;
     }
+    
+    /**
+     * Returns the degree of this node.
+     * @return 
+     */
+    public int getDegree()
+    {
+        return edges.size();
+    }
 
     /**
      * @return the name
@@ -55,6 +64,12 @@ public class Node {
         return edges;
     }
 
+    /**
+     * Finds the connecting edge to the nodeId and returns null if there is no connection.
+     * O(k)
+     * @param nodeId
+     * @return 
+     */
     public Edge getEdge(String nodeId) {
         for (Edge e : edges) {
             if (e.getDst().equalsIgnoreCase(nodeId)) {
