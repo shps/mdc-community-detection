@@ -1,5 +1,6 @@
 package se.kth.mcac.cd.db;
 
+import java.security.SecureRandom;
 import se.kth.mcac.cd.CommunityDetector;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
@@ -13,6 +14,20 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
 
     public static final float CONVERGENCE_THRESHOLD = 0;
     public static final short DEFAULT_ITERATION = 1;
+    public static final float DEFAULT_INITIAL_COLOR_ASSIGNMENT = 1f; // Color assignment probability to a node.
+    private float p; // initial color assignment probability.
+
+    public DiffusionBasedCommunityDetector() {
+        this(DEFAULT_INITIAL_COLOR_ASSIGNMENT);
+    }
+
+    public DiffusionBasedCommunityDetector(float initialColorAssignment) {
+        if (initialColorAssignment > 1f) {
+            throw new IllegalArgumentException("Initial color assignment should be a float number less than or equal 1.");
+        }
+
+        this.p = initialColorAssignment;
+    }
 
     @Override
     public void findCommunities(Graph graph) {
@@ -36,17 +51,30 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
     }
 
     private float[][] init(Graph graph) {
-        float[][] nodeColors = new float[graph.size()][graph.size()];
-        for (int i = 0; i < graph.size(); i++) {
-            nodeColors[i][i] = 1f;
+        SecureRandom r = new SecureRandom();
+        int c = (int) (graph.size() * p);
+        float[][] nodeColors = new float[graph.size()][c];
+        if (p == 1) {
+            for (int i = 0; i < graph.size(); i++) {
+                nodeColors[i][i] = 1f;
+            }
+        } else {
+            for (int i = 0; i < c; i++) {
+                float currentColor = 1;
+                while (currentColor == 1) {
+                    int nodeId = r.nextInt(graph.size());
+                    if ((currentColor = nodeColors[nodeId][i]) == 0) {
+                        nodeColors[nodeId][i] = 1f;
+                    }
+                }
+            }
         }
-
         return nodeColors;
     }
 
     private float[][] diffuseColors(Node[] nodes, float[][] nodeColors, Graph graph) {
-
-        float[][] newColors = new float[nodeColors.length][nodeColors.length];
+        int c = nodeColors[0].length;
+        float[][] newColors = new float[graph.size()][c];
         for (Node n : nodes) {
             float wSum = 0;
             for (Edge e : n.getEdges()) {
@@ -55,7 +83,7 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
             for (Edge e : n.getEdges()) {
                 int dstId = graph.getNode(e.getDst()).getId();
                 float portion = e.getWeight() / wSum;
-                for (int i = 0; i < nodeColors.length; i++) {
+                for (int i = 0; i < c; i++) {
                     newColors[dstId][i] += portion * nodeColors[n.getId()][i];
                 }
             }
@@ -70,11 +98,12 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
     }
 
     private void assignCommunities(Graph graph, final float[][] nodeColors) {
+        int c = nodeColors[0].length;
         for (Node n : graph.getNodes()) {
             float[] colorSum = nodeColors[n.getId()].clone();
             for (Edge e : n.getEdges()) {
                 int dstId = graph.getNode(e.getDst()).getId();
-                for (int i = 0; i < nodeColors.length; i++) {
+                for (int i = 0; i < c; i++) {
                     colorSum[i] += nodeColors[dstId][i];
                 }
             }
@@ -96,6 +125,20 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
         }
 
         return maxColor;
+    }
+
+    /**
+     * @return the p
+     */
+    public float getInitialColorAssignmentProbability() {
+        return p;
+    }
+
+    /**
+     * @param p the p to set
+     */
+    public void setInitialColorAssignmentProbability(float p) {
+        this.p = p;
     }
 
     class Color {

@@ -17,7 +17,7 @@ import se.kth.mcac.util.TabSeparatedConvertor;
  */
 public class CommunityFinder {
 
-    private static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/";
+    private static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/gephi results/";
 
     public static void main(String[] args) throws IOException {
 //        QmpsuConvertor convertor = new QmpsuConvertor();
@@ -26,7 +26,7 @@ public class CommunityFinder {
         Graph g = convertor.convertToGraph("/home/hooman/Desktop/diffusion results/facebook_combined.txt");
         System.out.println(String.format("Graph Nodes = %d, Edges = %d", g.size(), g.getNumOfEdges() / 2));
 //        Graph g = convertor.convertToGraph("/home/hooman/Desktop/diffusion results/guifi.json");
-        DiffusionBasedCommunityDetector primaryDetector = new DiffusionBasedCommunityDetector();
+        DiffusionBasedCommunityDetector primaryDetector = new DiffusionBasedCommunityDetector(0.01f);
         for (int round = 1; round < 100; round = round + 10) {
             long before = System.currentTimeMillis();
             primaryDetector.findCommunities(g, round);
@@ -41,8 +41,8 @@ public class CommunityFinder {
             after = System.currentTimeMillis();
             System.out.println(String.format("Modularity = %f", modularity));
             System.out.println(String.format("Computation time for modularity is %d", after - before));
+            CsvConvertor csvc = new CsvConvertor();
+            csvc.convertAndWrite(g, String.format("%s%d", DEFAULT_FILE_DIR, round));
         }
-        CsvConvertor csvc = new CsvConvertor();
-        csvc.convertAndWrite(g, DEFAULT_FILE_DIR);
     }
 }
