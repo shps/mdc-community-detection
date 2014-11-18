@@ -27,7 +27,6 @@ public class MGroup implements CommunityDetector {
         // TODO: Optimization in terms of computation time by consuming more memory.
         while (numCom > 1) {
             // Assumes that community ids are integers starting from zero to k-1.
-//            double[][] deltas = new double[k][k];
             int maxi = 0, maxj = 0;
             double maxQ = Double.MIN_VALUE;
             for (int i = 0; i < coms.size(); i++) {
@@ -35,7 +34,6 @@ public class MGroup implements CommunityDetector {
                     Community c1 = coms.get(i);
                     Community c2 = coms.get(j);
                     double deltaQ = computeDeltaQ(a, c1, c2, g);
-//                    deltas[c1.getId()][c2.getId()] = deltaQ;
                     if (deltaQ > maxQ) {
                         maxQ = deltaQ;
                         maxi = i;

@@ -47,6 +47,10 @@ public class SpaceSeparatedConvertor {
                     g.addNode(n1);
                 }
 
+                if (connections[0].equalsIgnoreCase("")) { // The vertex has no connections.
+                    continue;
+                }
+
                 for (String dst : connections) {
                     Node n2 = g.getNode(dst);
                     if (n2 == null) {
@@ -54,12 +58,11 @@ public class SpaceSeparatedConvertor {
                         g.addNode(n2);
                     }
                     n1.addEdge(new Edge(random.nextLong(), n1.getName(), n2.getName()));
-//                    n2.addEdge(new Edge(random.nextLong(), n2.getName(), n1.getName()));
                 }
             }
 
             int v = g.size();
-            int e = g.getNumOfEdges()/2;
+            int e = g.getNumOfEdges() / 2;
             short fmt = Short.valueOf(attributes[2]);
             if (Integer.valueOf(attributes[0]) != v
                     || Integer.valueOf(attributes[1]) != e

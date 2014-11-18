@@ -18,7 +18,7 @@ public class CsvConvertor {
     public static final String COMMA = ",";
     public static final String DIRECTED = "directed";
 
-    public void convertAndWrite(Graph g, String outputDir) throws FileNotFoundException {
+    public static void convertAndWrite(Graph g, String outputDir) throws FileNotFoundException {
         try (PrintWriter nodeWriter = new PrintWriter(outputDir + "nodes.csv");
                 PrintWriter edgeWriter = new PrintWriter(outputDir + "edges.csv")) {
             nodeWriter.println("Id,Lat,Lon,community");
