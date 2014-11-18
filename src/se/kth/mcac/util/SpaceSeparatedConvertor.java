@@ -38,7 +38,8 @@ public class SpaceSeparatedConvertor {
             int id = 1;
             Random random = new Random();
             String[] attributes = reader.readLine().split(SPACE_DELIMITER); // the first line includes attributes. [0] vertices [1] edges [2] fmt
-            while ((line = reader.readLine()) != null) {
+            for (int i = 0; i < Integer.valueOf(attributes[0]); i++) {
+                line = reader.readLine();
                 String[] connections = line.split(SPACE_DELIMITER);
 
                 Node n1 = g.getNode(String.valueOf(id));
@@ -48,13 +49,12 @@ public class SpaceSeparatedConvertor {
                     id++;
                 }
 
-                for (int i = 0; i < connections.length; i++) {
-                    Node n2 = g.getNode(connections[i]);
+                for (String dst : connections) {
+                    Node n2 = g.getNode(dst);
                     if (n2 == null) {
-                        n2 = new Node(Integer.valueOf(connections[i]) - 1, connections[i]);
+                        n2 = new Node(Integer.valueOf(dst) - 1, dst);
                         g.addNode(n2);
                     }
-
                     n1.addEdge(new Edge(random.nextLong(), n1.getName(), n2.getName()));
                     n2.addEdge(new Edge(random.nextLong(), n2.getName(), n1.getName()));
                 }
