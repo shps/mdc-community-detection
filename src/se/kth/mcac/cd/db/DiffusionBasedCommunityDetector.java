@@ -54,7 +54,7 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
         SecureRandom r = new SecureRandom();
         int c = (int) (graph.size() * p);
         float[][] nodeColors = new float[graph.size()][c];
-        if (p == 1) {
+        if (p == 1f) {
             for (int i = 0; i < graph.size(); i++) {
                 nodeColors[i][i] = 1f;
             }

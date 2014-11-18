@@ -18,15 +18,15 @@ import se.kth.mcac.util.TabSeparatedConvertor;
  */
 public class CommunityFinder {
 
-    private static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/dimacs/";
+    private static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/dimacs/celegans/";
 
-    public static void main(String[] args) throws IOException {
-        float initialColorAssignment = 0.005f;
+    public static void main(String[] args) throws IOException, Exception {
+        float initialColorAssignment = 1f;
 //        QmpsuConvertor convertor = new QmpsuConvertor();
 //        Graph g = convertor.convertToGraph(DEFAULT_FILE_DIR + "graph-5434e0f1.json");
 //        TabSeparatedConvertor convertor = new TabSeparatedConvertor();
         SpaceSeparatedConvertor convertor = new SpaceSeparatedConvertor();
-        Graph g = convertor.convertToGraph("/home/hooman/Desktop/dimacs/as-22july06/as-22july06.graph");
+        Graph g = convertor.convertToGraph(DEFAULT_FILE_DIR+"celegans_metabolic.graph");
         System.out.println(String.format("Graph Nodes = %d, Edges = %d", g.size(), g.getNumOfEdges() / 2));
 //        Graph g = convertor.convertToGraph("/home/hooman/Desktop/diffusion results/guifi.json");
         DiffusionBasedCommunityDetector primaryDetector = new DiffusionBasedCommunityDetector(initialColorAssignment);
