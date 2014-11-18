@@ -35,10 +35,9 @@ public class SpaceSeparatedConvertor {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
-            int id = 1;
             Random random = new Random();
             String[] attributes = reader.readLine().split(SPACE_DELIMITER); // the first line includes attributes. [0] vertices [1] edges [2] fmt
-            for (int i = 0; i < Integer.valueOf(attributes[0]); i++) {
+            for (int id = 1; id <= Integer.valueOf(attributes[0]); id++) {
                 line = reader.readLine();
                 String[] connections = line.split(SPACE_DELIMITER);
 
@@ -46,7 +45,6 @@ public class SpaceSeparatedConvertor {
                 if (n1 == null) {
                     n1 = new Node(id - 1, String.valueOf(id));
                     g.addNode(n1);
-                    id++;
                 }
 
                 for (String dst : connections) {
@@ -56,16 +54,16 @@ public class SpaceSeparatedConvertor {
                         g.addNode(n2);
                     }
                     n1.addEdge(new Edge(random.nextLong(), n1.getName(), n2.getName()));
-                    n2.addEdge(new Edge(random.nextLong(), n2.getName(), n1.getName()));
+//                    n2.addEdge(new Edge(random.nextLong(), n2.getName(), n1.getName()));
                 }
             }
 
             int v = g.size();
-            int e = g.getNumOfEdges();
+            int e = g.getNumOfEdges()/2;
             short fmt = Short.valueOf(attributes[2]);
             if (Integer.valueOf(attributes[0]) != v
-                    && Integer.valueOf(attributes[1]) != e
-                    && fmt != 0) {
+                    || Integer.valueOf(attributes[1]) != e
+                    || fmt != 0) {
                 throw new Exception(String.format("The converted graph's attributes "
                         + "are inconsistent with the data in the input file or fmt is not zero: \nV=%d, E=%d, fmt=%d", v, e, fmt));
             }
