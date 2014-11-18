@@ -19,8 +19,8 @@ public class CommunityFinder {
     static final String FILE_NAME = "netscience.graph";
     static final float INIT_COLOR_ASSIGNMENT = 1f;
     static final int START_ITERATION = 100;
-    static final int END_ITERATION = START_ITERATION + 100;
-    static final int INCREMENT_PER_ITERATION = 50;
+    static final int END_ITERATION = START_ITERATION + 30;
+    static final int INCREMENT_PER_ITERATION = 10;
     static final boolean APPLY_MGROUP = true;
     static final int APPLY_MGROUP_AFTER = 100;
 
@@ -33,7 +33,10 @@ public class CommunityFinder {
 
         int maxRound = 0;
         float maxModularity = Float.MIN_VALUE;
+        float beforeMgroupModularity = 0;
         boolean appliedMGroup = false;
+        int maxNumCom = 0;
+        int beforeMgroupNumCom = 0;
 
         DiffusionBasedCommunityDetector dbcd = new DiffusionBasedCommunityDetector(INIT_COLOR_ASSIGNMENT);
         for (int round = START_ITERATION; round < END_ITERATION; round = round + INCREMENT_PER_ITERATION) {
@@ -42,7 +45,8 @@ public class CommunityFinder {
             dbcd.findCommunities(g, round);
             long after = System.currentTimeMillis();
             print(String.format("Computation time for %d round is %d", round, after - before));
-            print(String.format("Number of Communities %d", g.getNumCommunities()));
+            int numCom = g.getNumCommunities();
+            print(String.format("Number of Communities %d", numCom));
 
             before = System.currentTimeMillis();
             float modularity = ModularityComputer.compute(g);
@@ -54,6 +58,9 @@ public class CommunityFinder {
             if (modularity > maxModularity) {
                 maxRound = round;
                 maxModularity = modularity;
+                beforeMgroupModularity = maxModularity;
+                maxNumCom = numCom;
+                beforeMgroupNumCom = numCom;
                 appliedMGroup = false;
             }
 
@@ -63,21 +70,26 @@ public class CommunityFinder {
                 cd.findCommunities(g);
                 after = System.currentTimeMillis();
                 System.out.println(String.format("Computation time for MGroup is %d", after - before));
-
+                float temp = modularity;
                 modularity = ModularityComputer.compute(g);
                 print(String.format("After MGroup Modularity = %f", modularity));
-                print(String.format("Number of Communities %d", g.getNumCommunities()));
+                int newNumCom = g.getNumCommunities();
+                print(String.format("Number of Communities %d", newNumCom));
                 CsvConvertor.convertAndWrite(g, String.format("%s%dmgroup", DEFAULT_FILE_DIR, round));
 
                 if (modularity > maxModularity) {
                     maxRound = round;
                     maxModularity = modularity;
                     appliedMGroup = true;
+                    beforeMgroupModularity = temp;
+                    maxNumCom = newNumCom;
+                    beforeMgroupNumCom = numCom;
                 }
             }
         }
 
-        print(String.format("Max Modularity = %f, Iteration = %d, AppliedMgroup = %b", maxModularity, maxRound, appliedMGroup));
+        print(String.format("Max Modularity = %f, Number of Communities = %d, Iteration = %d, AppliedMgroup = %b, BeforeMgroupModularity = %f, BeforeMgroupNumCom = %d",
+                maxModularity, maxNumCom, maxRound, appliedMGroup, beforeMgroupModularity, beforeMgroupNumCom));
     }
 
     public static void print(String str) {
