@@ -16,8 +16,8 @@ public class NewClass {
         
 //        TabSeparatedConvertor tabCon = new TabSeparatedConvertor();
 //        Graph g = tabCon.convertToGraph("/home/hooman/Desktop/gephi results/Cit-HepTh.txt");
-        String nodeFile = "/home/hooman/Desktop/dimacs/n0445.csv";
-        String edgeFile = "/home/hooman/Desktop/dimacs/e0445.csv";
+        String nodeFile = "/home/hooman/Desktop/dimacs/comparison/an.csv";
+        String edgeFile = "/home/hooman/Desktop/dimacs/comparison/en.csv";
         CsvConvertor convertor = new CsvConvertor();
 //        convertor.convertAndWrite(g, String.format("%s%d", "/home/hooman/Desktop/gephi results/", 1000));
         Graph g = convertor.convertAndRead(nodeFile, edgeFile);
