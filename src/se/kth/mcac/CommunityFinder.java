@@ -15,9 +15,8 @@ import se.kth.mcac.util.SpaceSeparatedConvertor;
  */
 public class CommunityFinder {
 
-    static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/dimacs/polblogs/";
-    static final String FILE_NAME = "polblogs.graph";
-    static final float INIT_COLOR_ASSIGNMENT = 1f;
+    static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/dimacs//";
+    static final String FILE_NAME = "jazz.graph";
     static final int START_ITERATION = 100;
     static final int END_ITERATION = START_ITERATION + 100;
     static final int INCREMENT_PER_ITERATION = 10;
@@ -29,7 +28,6 @@ public class CommunityFinder {
         SpaceSeparatedConvertor convertor = new SpaceSeparatedConvertor();
         Graph g = convertor.convertToGraph(DEFAULT_FILE_DIR + FILE_NAME);
         print(String.format("Graph Nodes = %d, Edges = %d", g.size(), g.getNumOfEdges() / 2));
-        print(String.format("INIT_COLOR_ASSIGNMENT = %f", INIT_COLOR_ASSIGNMENT));
 
         int maxRound = 0;
         double maxModularity = Float.MIN_VALUE;
@@ -38,7 +36,7 @@ public class CommunityFinder {
         int maxNumCom = 0;
         int beforeMgroupNumCom = 0;
 
-        DiffusionBasedCommunityDetector dbcd = new DiffusionBasedCommunityDetector(INIT_COLOR_ASSIGNMENT);
+        DiffusionBasedCommunityDetector dbcd = new DiffusionBasedCommunityDetector();
         for (int round = START_ITERATION; round < END_ITERATION; round = round + INCREMENT_PER_ITERATION) {
 
             long before = System.currentTimeMillis();
