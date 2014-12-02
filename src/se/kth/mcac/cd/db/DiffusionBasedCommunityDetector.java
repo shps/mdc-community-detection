@@ -65,15 +65,16 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
             }
             for (Edge e : n.getEdges()) {
                 int dstId = graph.getNode(e.getDst()).getId();
-                nokColors[dstId].and(nokColors[n.getId()]);
+                if (newColors[dstId] == null) {
+                    newColors[dstId] = new HashMap<>();
+                }
+                nokColors[dstId].or(nokColors[n.getId()]);
                 float portion = e.getWeight() / wSum;
                 Iterator<Map.Entry<Integer, Float>> iterator = colors[n.getId()].entrySet().iterator();
                 while (iterator.hasNext()) {
                     Map.Entry<Integer, Float> color = iterator.next();
                     if (!nokColors[dstId].get(color.getKey())) {
                         float c = 0;
-                        if (newColors[dstId] == null)
-                            newColors[dstId] = new HashMap<>();
                         if (newColors[dstId].containsKey(color.getKey())) {
                             c = newColors[dstId].get(color.getKey());
                         }

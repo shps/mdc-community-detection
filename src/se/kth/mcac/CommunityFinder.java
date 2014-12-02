@@ -1,7 +1,6 @@
 package se.kth.mcac;
 
 import java.io.IOException;
-import se.kth.mcac.cd.CommunityDetector;
 import se.kth.mcac.cd.db.DiffusionBasedCommunityDetector;
 import se.kth.mcac.cd.db.MGroup;
 import se.kth.mcac.graph.Graph;
@@ -15,7 +14,7 @@ import se.kth.mcac.util.SpaceSeparatedConvertor;
  */
 public class CommunityFinder {
 
-    static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/dimacs//";
+    static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/dimacs/jazz/";
     static final String FILE_NAME = "jazz.graph";
     static final int START_ITERATION = 100;
     static final int END_ITERATION = START_ITERATION + 100;
