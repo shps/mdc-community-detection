@@ -16,11 +16,11 @@ public class CommunityFinder {
 
     static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/dimacs/jazz/";
     static final String FILE_NAME = "jazz.graph";
-    static final int START_ITERATION = 100;
-    static final int END_ITERATION = START_ITERATION + 100;
-    static final int INCREMENT_PER_ITERATION = 10;
+    static final int START_ITERATION = 1;
+    static final int END_ITERATION = START_ITERATION + 10;
+    static final int INCREMENT_PER_ITERATION = 1;
     static final boolean APPLY_MGROUP = false;
-    static final int APPLY_MGROUP_AFTER = 20;
+    static final int APPLY_MGROUP_AFTER = 0;
 
     public static void main(String[] args) throws IOException, Exception {
 

@@ -118,22 +118,36 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
 
     private void checkColors(Graph graph, final HashMap<Integer, Float>[] colors) {
         for (Node n : graph.getNodes()) {
-            HashMap<Integer, Float> colorSum = (HashMap<Integer, Float>) colors[n.getId()].clone();
-            for (Edge e : n.getEdges()) {
-                int dstId = graph.getNode(e.getDst()).getId();
-                Iterator<Map.Entry<Integer, Float>> iterator = colors[dstId].entrySet().iterator();
+            if (colors[n.getId()].containsKey(n.getId())) {
+                HashMap<Integer, Float> colorSum = (HashMap<Integer, Float>) colors[n.getId()].clone();
+                for (Edge e : n.getEdges()) {
+                    int dstId = graph.getNode(e.getDst()).getId();
+                    Iterator<Map.Entry<Integer, Float>> iterator = colors[dstId].entrySet().iterator();
+                    while (iterator.hasNext()) {
+                        Map.Entry<Integer, Float> color = iterator.next();
+                        float c = 0;
+                        if (colorSum.containsKey(color.getKey())) {
+                            c = colorSum.get(color.getKey());
+                        }
+                        colorSum.put(color.getKey(), c + color.getValue());
+                    }
+                }
+                int maxColor = n.getId();
+                float maxValue = colorSum.get(n.getId());
+                Iterator<Map.Entry<Integer, Float>> iterator = colorSum.entrySet().iterator();
                 while (iterator.hasNext()) {
                     Map.Entry<Integer, Float> color = iterator.next();
-                    float c = 0;
-                    if (colorSum.containsKey(color.getKey())) {
-                        c = colorSum.get(color.getKey());
+                    if (color.getValue() > maxValue) {
+
+                        maxColor = color.getKey();
+                        maxValue = color.getValue();
+
                     }
-                    colorSum.put(color.getKey(), c + color.getValue());
                 }
-            }
-            int maxColor = findMaxColor(colorSum);
-            if (maxColor != n.getId()) {
-                nokColors[n.getId()].set(n.getId(), true);
+
+                if (maxColor != n.getId()) {
+                    nokColors[n.getId()].set(n.getId(), true);
+                }
             }
         }
     }
