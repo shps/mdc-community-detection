@@ -1,7 +1,6 @@
 package se.kth.mcac;
 
 import java.io.IOException;
-import se.kth.mcac.cd.CommunityDetector;
 import se.kth.mcac.cd.db.DiffusionBasedCommunityDetector;
 import se.kth.mcac.cd.db.MGroup;
 import se.kth.mcac.graph.Graph;
@@ -15,14 +14,15 @@ import se.kth.mcac.util.SpaceSeparatedConvertor;
  */
 public class CommunityFinder {
 
-    static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/dimacs/jazz/";
-    static final String FILE_NAME = "jazz.graph";
+    static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/dimacs/netscience/";
+    static final String FILE_NAME = "netscience.graph";
     static final float INIT_COLOR_ASSIGNMENT = 1f;
-    static final int START_ITERATION = 1;
-    static final int END_ITERATION = START_ITERATION + 30;
-    static final int INCREMENT_PER_ITERATION = 1;
+    static final int START_ITERATION = 100;
+    static final int END_ITERATION = START_ITERATION + 200;
+    static final int INCREMENT_PER_ITERATION = 10;
     static final boolean APPLY_MGROUP = false;
     static final int APPLY_MGROUP_AFTER = 0;
+    static final boolean APPLY_ONLY_ONCE = true;
 
     public static void main(String[] args) throws IOException, Exception {
 
@@ -38,7 +38,7 @@ public class CommunityFinder {
         int maxNumCom = 0;
         int beforeMgroupNumCom = 0;
 
-        DiffusionBasedCommunityDetector dbcd = new DiffusionBasedCommunityDetector(INIT_COLOR_ASSIGNMENT);
+        DiffusionBasedCommunityDetector dbcd = new DiffusionBasedCommunityDetector(INIT_COLOR_ASSIGNMENT, APPLY_ONLY_ONCE);
         for (int round = START_ITERATION; round < END_ITERATION; round = round + INCREMENT_PER_ITERATION) {
 
             long before = System.currentTimeMillis();
