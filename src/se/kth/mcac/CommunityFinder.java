@@ -21,6 +21,8 @@ public class CommunityFinder {
     static final int INCREMENT_PER_ITERATION = 1;
     static final boolean APPLY_MGROUP = false;
     static final int APPLY_MGROUP_AFTER = 0;
+    static final boolean COLOR_STATISTICS = true;
+    static final boolean USE_GARBAGE_COLLECTOR = false;
 
     public static void main(String[] args) throws IOException, Exception {
 
@@ -36,6 +38,7 @@ public class CommunityFinder {
         int beforeMgroupNumCom = 0;
 
         DiffusionBasedCommunityDetector dbcd = new DiffusionBasedCommunityDetector();
+        dbcd.setColorStats(COLOR_STATISTICS).setGc(USE_GARBAGE_COLLECTOR);
         for (int round = START_ITERATION; round < END_ITERATION; round = round + INCREMENT_PER_ITERATION) {
 
             long before = System.currentTimeMillis();

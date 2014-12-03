@@ -18,6 +18,8 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
     public static final float CONVERGENCE_THRESHOLD = 0;
     public static final short DEFAULT_ITERATION = 1;
     private BitSet[] nokColors;
+    private boolean colorStats = false;
+    private boolean gc = false;
 
     @Override
     public void findCommunities(Graph graph) {
@@ -35,10 +37,31 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
         Node[] nodes = graph.getNodes(); // Notice that the orther of nodes in this array has nothing to do with their node ID.
         for (int i = 0; i < iteration; i++) {
             colors = diffuseColors(nodes, colors, graph);
-            checkColors(graph, colors);
+            if (gc) {
+                checkColors(graph, colors);
+            }
+            if (colorStats) {
+                colorStatistics(colors);
+            }
         }
 
         assignCommunities(graph, colors);
+    }
+
+    private int colorStatistics(HashMap<Integer, Float>[] colors) {
+        int max = 0;
+        int total = 0;
+
+        for (HashMap<Integer, Float> map : colors) {
+            total += map.size();
+            if (map.size() > max) {
+                max = map.size();
+            }
+        }
+
+        System.out.println(String.format("max = %d, total = %d", max, total));
+
+        return total;
     }
 
     private HashMap<Integer, Float>[] init(Graph graph) {
@@ -132,21 +155,16 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
                         colorSum.put(color.getKey(), c + color.getValue());
                     }
                 }
-                int maxColor = n.getId();
                 float maxValue = colorSum.get(n.getId());
                 Iterator<Map.Entry<Integer, Float>> iterator = colorSum.entrySet().iterator();
                 while (iterator.hasNext()) {
                     Map.Entry<Integer, Float> color = iterator.next();
                     if (color.getValue() > maxValue) {
 
-                        maxColor = color.getKey();
-                        maxValue = color.getValue();
+                        nokColors[n.getId()].set(n.getId(), true);
+                        break;
 
                     }
-                }
-
-                if (maxColor != n.getId()) {
-                    nokColors[n.getId()].set(n.getId(), true);
                 }
             }
         }
@@ -167,6 +185,36 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
         }
 
         return maxColor;
+    }
+
+    /**
+     * @return the colorStats
+     */
+    public boolean isColorStats() {
+        return colorStats;
+    }
+
+    /**
+     * @param colorStats the colorStats to set
+     * @return 
+     */
+    public DiffusionBasedCommunityDetector setColorStats(boolean colorStats) {
+        this.colorStats = colorStats;
+        return this;
+    }
+
+    /**
+     * @return the gc
+     */
+    public boolean isGc() {
+        return gc;
+    }
+
+    /**
+     * @param gc the gc to set
+     */
+    public void setGc(boolean gc) {
+        this.gc = gc;
     }
 
     class Color {
