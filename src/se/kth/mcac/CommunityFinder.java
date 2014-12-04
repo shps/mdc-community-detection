@@ -17,12 +17,12 @@ public class CommunityFinder {
     static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/dimacs/jazz/";
     static final String FILE_NAME = "jazz.graph";
     static final int START_ITERATION = 1;
-    static final int END_ITERATION = START_ITERATION + 10;
+    static final int END_ITERATION = START_ITERATION + 30;
     static final int INCREMENT_PER_ITERATION = 1;
     static final boolean APPLY_MGROUP = false;
     static final int APPLY_MGROUP_AFTER = 0;
-    static final boolean COLOR_STATISTICS = true;
-    static final boolean USE_GARBAGE_COLLECTOR = false;
+    static final boolean COLOR_STATISTICS = false;
+    static final boolean USE_GARBAGE_COLLECTOR = true;
 
     public static void main(String[] args) throws IOException, Exception {
 
