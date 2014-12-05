@@ -15,16 +15,16 @@ import se.kth.mcac.util.SpaceSeparatedConvertor;
  */
 public class CommunityFinder {
 
-    static final String GRAPH_NAME = "dolphins";
+    static final String GRAPH_NAME = "karate";
     static final String DEFAULT_FILE_DIR = String.format("/home/hooman/Desktop/dimacs/%s/", GRAPH_NAME);
     static final String FILE_NAME = GRAPH_NAME + ".graph";
     static final int START_ITERATION = 1;
-    static final int END_ITERATION = START_ITERATION + 10;
+    static final int END_ITERATION = START_ITERATION + 100;
     static final int INCREMENT_PER_ITERATION = 1;
     static final boolean APPLY_MGROUP = true;
     static final int APPLY_MGROUP_AFTER = 0;
-    static final boolean COLOR_STATISTICS = false;
-    static final boolean USE_GARBAGE_COLLECTOR = true;
+    static final boolean COLOR_STATISTICS = true;
+    static final boolean USE_GARBAGE_COLLECTOR = false;
     static final boolean FULL_STATS = true;
 
     // Stats Keys

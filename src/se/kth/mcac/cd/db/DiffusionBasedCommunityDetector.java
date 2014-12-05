@@ -162,7 +162,7 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
                     if (color.getValue() > maxValue) {
 
                         nokColors[n.getId()].set(n.getId(), true);
-                        iterator.remove();
+                        colors[n.getId()].remove(n.getId());
                         break;
 
                     }
