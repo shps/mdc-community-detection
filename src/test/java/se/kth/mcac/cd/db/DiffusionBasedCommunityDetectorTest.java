@@ -1,6 +1,5 @@
 package se.kth.mcac.cd.db;
 
-import org.junit.Test;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.graph.Node;
@@ -17,7 +16,6 @@ public class DiffusionBasedCommunityDetectorTest {
     /**
      * Test of findCommunities method, of class DiffusionBasedCommunityDetector.
      */
-    @Test
     public void testFindCommunities() {
 
         Graph g = new Graph();
