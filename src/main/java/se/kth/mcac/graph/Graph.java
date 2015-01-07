@@ -2,6 +2,8 @@ package se.kth.mcac.graph;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
@@ -74,7 +76,8 @@ public class Graph {
 
     /**
      * Returns number of communities. Computation O(n).
-     * @return 
+     *
+     * @return
      */
     public int getNumCommunities() {
         HashSet<Integer> communities = new HashSet<>();
@@ -85,5 +88,25 @@ public class Graph {
         int size = communities.size();
         communities = null;
         return size;
+    }
+
+    /**
+     * O(n)
+     * @return 
+     */
+    public HashMap<Integer, HashMap<String, Node>> getCommunities() {
+        HashMap<Integer, HashMap<String, Node>> cs = new HashMap<>();
+        for (Node n : getNodes()) {
+            HashMap<String, Node> c;
+            if (cs.containsKey(n.getCommunityId())) {
+                c = cs.get(n.getCommunityId());
+            } else {
+                c = new HashMap<>();
+                cs.put(n.getCommunityId(), c);
+            }
+            c.put(n.getName(), n);
+        }
+
+        return cs;
     }
 }

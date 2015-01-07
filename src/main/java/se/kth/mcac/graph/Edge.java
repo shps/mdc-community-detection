@@ -37,8 +37,7 @@ public class Edge {
             this.computeWeight();
         }
 
-//        return weight;
-        return 1;
+        return weight;
     }
 
     /**
@@ -110,5 +109,4 @@ public class Edge {
     public void setWeight(float weight) {
         this.weight = weight;
     }
-
 }
