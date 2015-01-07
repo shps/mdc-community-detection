@@ -7,6 +7,7 @@ import se.kth.mcac.cd.db.MGroup;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.util.CsvConvertor;
 import se.kth.mcac.util.ModularityComputer;
+import se.kth.mcac.util.QmpsuConvertor;
 import se.kth.mcac.util.SpaceSeparatedConvertor;
 
 /**
@@ -15,18 +16,19 @@ import se.kth.mcac.util.SpaceSeparatedConvertor;
  */
 public class CommunityFinder {
 
-    static final String DEFAULT_FILE_DIR = "/home/hooman/Desktop/dimacs/jazz/";
-    static final String FILE_NAME = "jazz.graph";
+    static final String DEFAULT_FILE_DIR = "/home/ganymedian/Desktop/sant-upc/";
+    static final String FILE_NAME = "graph-53ad2481.json";
     static final float INIT_COLOR_ASSIGNMENT = 1f;
     static final int START_ITERATION = 1;
-    static final int END_ITERATION = START_ITERATION + 30;
+    static final int END_ITERATION = START_ITERATION + 200;
     static final int INCREMENT_PER_ITERATION = 1;
     static final boolean APPLY_MGROUP = false;
     static final int APPLY_MGROUP_AFTER = 0;
 
     public static void main(String[] args) throws IOException, Exception {
 
-        SpaceSeparatedConvertor convertor = new SpaceSeparatedConvertor();
+//        SpaceSeparatedConvertor convertor = new SpaceSeparatedConvertor();
+        QmpsuConvertor convertor = new QmpsuConvertor();
         Graph g = convertor.convertToGraph(DEFAULT_FILE_DIR + FILE_NAME);
         print(String.format("Graph %s, Nodes = %d, Edges = %d", FILE_NAME, g.size(), g.getNumOfEdges() / 2));
         print(String.format("INIT_COLOR_ASSIGNMENT = %f", INIT_COLOR_ASSIGNMENT));
