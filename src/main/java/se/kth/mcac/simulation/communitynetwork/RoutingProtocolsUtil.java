@@ -1,4 +1,9 @@
-package se.kth.mcac.util;
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package se.kth.mcac.simulation.communitynetwork;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,9 +17,26 @@ import se.kth.mcac.graph.Node;
 
 /**
  *
- * @author hooman
+ * @author ganymedian
  */
-public class GraphUtil {
+public class RoutingProtocolsUtil {
+
+    public enum RoutingProtocols {
+
+        /**
+         * Shortest path without considering edge weights.
+         */
+        SIMPLE_SHORTEST_PATH,
+    }
+
+    public static HashMap<Node, List<Edge>> findRoutings(Node targetNode, HashMap<String, Node> communityNodes, RoutingProtocols protocol) {
+        switch (protocol) {
+            case SIMPLE_SHORTEST_PATH:
+                return findShortestPaths(targetNode, communityNodes);
+        }
+
+        return null;
+    }
 
     /**
      * Finds the shortest paths between the target node and the rest of the
@@ -25,7 +47,7 @@ public class GraphUtil {
      * @return a map of ID of the nodes and the edges of the shortest path to
      * the target node.
      */
-    public static HashMap<Node, List<Edge>> findShortestPaths(Node targetNode, HashMap<String, Node> communityNodes) {
+    private static HashMap<Node, List<Edge>> findShortestPaths(Node targetNode, HashMap<String, Node> communityNodes) {
         HashMap<Node, List<Edge>> paths = new HashMap<>(); // all the shortest paths
         HashSet<Node> others = new HashSet<>(communityNodes.values());
         Queue<Node> toVisit = new LinkedList<>();
@@ -56,7 +78,9 @@ public class GraphUtil {
         while (iterator.hasNext()) {
             Node n = iterator.next().getValue();
             final List<Edge> path = new LinkedList<>();
-            backtrack(targetNode, n, parents, path, communityNodes);
+            if (!n.equals(targetNode)) {
+                backtrack(targetNode, n, parents, path, communityNodes);
+            }
             paths.put(n, path);
         }
 
@@ -77,4 +101,5 @@ public class GraphUtil {
             System.err.printf(String.format("Can't find a path from the node %d to target %d", n.getId(), target.getId()));
         }
     }
+
 }

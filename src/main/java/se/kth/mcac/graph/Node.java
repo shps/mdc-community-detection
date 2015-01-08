@@ -39,17 +39,26 @@ public class Node {
      * @param e
      * @return a list of edges including the new edge.
      */
-    public List<Edge> addEdge(Edge e) {
+    public void addEdge(Edge e) {
         edges.add(e);
-        return edges;
     }
-    
+
+    /**
+     * 
+     * @param es 
+     */
+    public void addEdges(Edge... es) {
+        for (Edge e : es) {
+            edges.add(e);
+        }
+    }
+
     /**
      * Returns the degree of this node.
-     * @return 
+     *
+     * @return
      */
-    public int getDegree()
-    {
+    public int getDegree() {
         return edges.size();
     }
 
@@ -65,10 +74,11 @@ public class Node {
     }
 
     /**
-     * Finds the connecting edge to the nodeId and returns null if there is no connection.
-     * O(k)
+     * Finds the connecting edge to the nodeId and returns null if there is no
+     * connection. O(k)
+     *
      * @param nodeId
-     * @return 
+     * @return
      */
     public Edge getEdge(String nodeId) {
         for (Edge e : edges) {

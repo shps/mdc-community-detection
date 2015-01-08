@@ -20,8 +20,8 @@ public class CommunityFinder {
     static final String FILE_NAME = "graph-53ad2481.json";
     static final float INIT_COLOR_ASSIGNMENT = 1f;
     static final int START_ITERATION = 1;
-    static final int END_ITERATION = START_ITERATION + 200;
-    static final int INCREMENT_PER_ITERATION = 1;
+    static final int END_ITERATION = START_ITERATION + 90;
+    static final int INCREMENT_PER_ITERATION = 5;
     static final boolean APPLY_MGROUP = false;
     static final int APPLY_MGROUP_AFTER = 0;
 
@@ -46,15 +46,15 @@ public class CommunityFinder {
             long before = System.currentTimeMillis();
             dbcd.findCommunities(g, round);
             long after = System.currentTimeMillis();
-            print(String.format("Computation time for %d round is %d", round, after - before));
+            print(String.format("Iteration: %d, Computation Time: %d", round, after - before));
             int numCom = g.getNumCommunities();
-            print(String.format("Number of Communities %d", numCom));
+            print(String.format("Communities: %d", numCom));
 
             before = System.currentTimeMillis();
             double modularity = ModularityComputer.compute(g);
             after = System.currentTimeMillis();
             print(String.format("Modularity = %f", modularity));
-            print(String.format("Computation time for modularity is %d", after - before));
+            print(String.format("Computation time for modularity: %d", after - before));
             CsvConvertor.convertAndWrite(g, String.format("%s%d", DEFAULT_FILE_DIR, round));
 
             if (modularity > maxModularity) {

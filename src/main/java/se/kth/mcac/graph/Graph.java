@@ -2,8 +2,6 @@ package se.kth.mcac.graph;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  *
@@ -17,9 +15,14 @@ public class Graph {
         nodes = new HashMap();
     }
 
-    public HashMap<String, Node> addNode(Node node) {
+    public void addNode(Node node) {
         nodes.put(node.getName(), node);
-        return nodes;
+    }
+
+    public void addNodes(Node... ns) {
+        for (Node n : ns) {
+            nodes.put(n.getName(), n);
+        }
     }
 
     /**
@@ -92,7 +95,8 @@ public class Graph {
 
     /**
      * O(n)
-     * @return 
+     *
+     * @return
      */
     public HashMap<Integer, HashMap<String, Node>> getCommunities() {
         HashMap<Integer, HashMap<String, Node>> cs = new HashMap<>();
