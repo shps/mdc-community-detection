@@ -35,9 +35,44 @@ public class CsvConvertor {
         }
     }
 
+//    /**
+//     * The current version only supports node files with id,modularity class
+//     * format. and Edge with the format source,target,id.
+//     *
+//     * @param nodeFile
+//     * @param edgeFile
+//     * @return
+//     * @throws FileNotFoundException
+//     * @throws IOException
+//     */
+//    public Graph convertAndRead(String nodeFile, String edgeFile) throws FileNotFoundException, IOException {
+//        Graph g = new Graph();
+//        int i = 0; // node id
+//        try (BufferedReader reader = new BufferedReader(new FileReader(nodeFile))) {
+//            String line = reader.readLine(); // Skip  the first line.
+//            while ((line = reader.readLine()) != null) {
+//                String[] connections = line.split(COMMA);
+//                Node n = new Node(i, connections[0]);
+//                n.setCommunityId(Integer.valueOf(connections[1]));
+//                g.addNode(n);
+//                i++;
+//            }
+//        }
+//
+//        try (BufferedReader reader = new BufferedReader(new FileReader(edgeFile))) {
+//            String line = reader.readLine(); // Skip  the first line.
+//            while ((line = reader.readLine()) != null) {
+//                String[] connections = line.split(COMMA);
+//                Node n = g.getNode(connections[0]);
+//                n.addEdge(new Edge(Long.valueOf(connections[2]), connections[0], connections[1]));
+//            }
+//        }
+//
+//        return g;
+//    }
     /**
-     * The current version only supports node files with id,modularity class
-     * format. and Edge with the format source,target,id.
+     * This method is to read the output of the CommunityFinder class with the
+     * same file format.
      *
      * @param nodeFile
      * @param edgeFile
@@ -53,7 +88,9 @@ public class CsvConvertor {
             while ((line = reader.readLine()) != null) {
                 String[] connections = line.split(COMMA);
                 Node n = new Node(i, connections[0]);
-                n.setCommunityId(Integer.valueOf(connections[1]));
+                n.setLat(Double.parseDouble(connections[1]));
+                n.setLon(Double.parseDouble(connections[2]));
+                n.setCommunityId(Integer.valueOf(connections[3]));
                 g.addNode(n);
                 i++;
             }
@@ -64,7 +101,12 @@ public class CsvConvertor {
             while ((line = reader.readLine()) != null) {
                 String[] connections = line.split(COMMA);
                 Node n = g.getNode(connections[0]);
-                n.addEdge(new Edge(Long.valueOf(connections[2]), connections[0], connections[1]));
+                n.addEdge(
+                        new Edge(Long.valueOf(connections[3]),
+                                connections[0], connections[1],
+                                Float.parseFloat(connections[4]),
+                                Float.parseFloat(connections[5]),
+                                0));
             }
         }
 

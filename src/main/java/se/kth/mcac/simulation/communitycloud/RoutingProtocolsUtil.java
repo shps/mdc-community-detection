@@ -99,7 +99,7 @@ public class RoutingProtocolsUtil {
             backtrack(target, src, parents, path, communityNodes);
             path.add(e);
         } else if (!n.equals(target)) {
-            System.err.printf(String.format("Can't find a path from the node %d to target %d", n.getId(), target.getId()));
+            System.err.println(String.format("Can't find a path from the node %s to target %s", n.getName(), target.getName()));
         }
     }
 

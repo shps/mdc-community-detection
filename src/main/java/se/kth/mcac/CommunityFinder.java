@@ -20,8 +20,8 @@ public class CommunityFinder {
     static final String FILE_NAME = "graph-53ad2481.json";
     static final float INIT_COLOR_ASSIGNMENT = 1f;
     static final int START_ITERATION = 1;
-    static final int END_ITERATION = START_ITERATION + 90;
-    static final int INCREMENT_PER_ITERATION = 5;
+    static final int END_ITERATION = START_ITERATION + 10001;
+    static final int INCREMENT_PER_ITERATION = 9999;
     static final boolean APPLY_MGROUP = false;
     static final int APPLY_MGROUP_AFTER = 0;
 
