@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package se.kth.mcac.simulation.communitynetwork;
+package se.kth.mcac.simulation.communitycloud;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,10 +62,11 @@ public class RoutingProtocolsUtil {
                 visited.add(n);
                 for (Edge e : n.getEdges()) {
                     Node dst = communityNodes.get(e.getDst());
-                    parents.put(dst, e);
-                    if (others.contains(dst)) {
-                        others.remove(dst);
+                    if (!others.contains(dst)) {
+                        continue;
                     }
+                    others.remove(dst);
+                    parents.put(dst, e);
                     if (!visited.contains(dst)) {
                         toVisit.add(dst);
                     }

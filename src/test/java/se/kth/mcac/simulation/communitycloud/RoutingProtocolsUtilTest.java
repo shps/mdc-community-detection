@@ -3,15 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package se.kth.mcac.simulation.communitynetwork;
+package se.kth.mcac.simulation.communitycloud;
 
+import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil;
 import java.util.HashMap;
 import java.util.List;
 import org.junit.Test;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.graph.Node;
-import se.kth.mcac.simulation.communitynetwork.RoutingProtocolsUtil.RoutingProtocols;
+import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil.RoutingProtocols;
 
 /**
  *
@@ -103,6 +104,24 @@ public class RoutingProtocolsUtilTest {
         //n1->n1
         path = routingMap.get(n1);
         assert path.isEmpty();
+        
+        routingMap = RoutingProtocolsUtil.findRoutings(n4, communities.get(1), RoutingProtocols.SIMPLE_SHORTEST_PATH);
+        //n4->n2
+        path = routingMap.get(n2);
+        assert path.size() == 1;
+        assert path.get(0).equals(e42);
+        //n4->n5
+        path = routingMap.get(n5);
+        assert path.size() == 1;
+        assert path.get(0).equals(e45);
+        //n4->n1
+        path = routingMap.get(n1);
+        assert path.size() == 2;
+        assert path.get(0).equals(e42) && path.get(1).equals(e21);
+        //n4->n3
+        path = routingMap.get(n3);
+        assert path.size() == 2;
+        assert path.get(0).equals(e45) && path.get(1).equals(e53);
     }
 
 }
