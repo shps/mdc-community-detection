@@ -5,7 +5,6 @@
  */
 package se.kth.mcac.simulation.communitycloud;
 
-import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil;
 import java.util.HashMap;
 import java.util.List;
 import org.junit.Test;
@@ -44,9 +43,10 @@ public class RoutingProtocolsUtilTest {
         Node n7 = new Node(6, "6");
         n7.setCommunityId(2);
         Node n8 = new Node(7, "7");
-        n8.setCommunityId(2);
+        n8.setCommunityId(3);
 
         Edge e12 = new Edge(12, n1.getName(), n2.getName());
+        e12.setLatency(10);
         Edge e13 = new Edge(13, n1.getName(), n3.getName());
         Edge e16 = new Edge(16, n1.getName(), n6.getName());
         Edge e17 = new Edge(17, n1.getName(), n7.getName());
@@ -58,11 +58,13 @@ public class RoutingProtocolsUtilTest {
         n2.addEdges(e21, e24, e25);
 
         Edge e31 = new Edge(31, n3.getName(), n1.getName());
+        e31.setLatency(10);
         Edge e35 = new Edge(35, n3.getName(), n5.getName());
         Edge e37 = new Edge(37, n3.getName(), n7.getName());
         n3.addEdges(e31, e35, e37);
 
         Edge e42 = new Edge(42, n4.getName(), n2.getName());
+        e42.setLatency(10);
         Edge e45 = new Edge(45, n4.getName(), n5.getName());
         n4.addEdges(e42, e45);
 
@@ -80,9 +82,8 @@ public class RoutingProtocolsUtilTest {
 
         Graph g = new Graph();
         g.addNodes(n1, n2, n3, n4, n5, n6, n7, n8);
-        HashMap<Integer, HashMap<String, Node>> communities = g.getCommunities();
 
-        HashMap<Node, List<Edge>> routingMap = RoutingProtocolsUtil.findRoutings(n1, communities.get(1), RoutingProtocols.SIMPLE_SHORTEST_PATH);
+        HashMap<Node, List<Edge>> routingMap = RoutingProtocolsUtil.findRoutings(n1, g, RoutingProtocols.SIMPLE_SHORTEST_PATH);
 
         // Check the correctness of the routing map
         //n1->n2
@@ -105,7 +106,7 @@ public class RoutingProtocolsUtilTest {
         path = routingMap.get(n1);
         assert path.isEmpty();
         
-        routingMap = RoutingProtocolsUtil.findRoutings(n4, communities.get(1), RoutingProtocols.SIMPLE_SHORTEST_PATH);
+        routingMap = RoutingProtocolsUtil.findRoutings(n4, g, RoutingProtocols.SIMPLE_SHORTEST_PATH);
         //n4->n2
         path = routingMap.get(n2);
         assert path.size() == 1;
@@ -118,6 +119,44 @@ public class RoutingProtocolsUtilTest {
         path = routingMap.get(n1);
         assert path.size() == 2;
         assert path.get(0).equals(e42) && path.get(1).equals(e21);
+        //n4->n3
+        path = routingMap.get(n3);
+        assert path.size() == 2;
+        assert path.get(0).equals(e45) && path.get(1).equals(e53);
+        
+        routingMap = RoutingProtocolsUtil.findRoutings(n1, g, RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY);
+        path = routingMap.get(n2);
+        assert path.size() == 3;
+        assert path.get(0).equals(e13) && path.get(1).equals(e35) && path.get(2).equals(e52);
+        //n1->n3
+        path = routingMap.get(n3);
+        assert path.size() == 1;
+        assert path.get(0).equals(e13);
+        //n1->n4
+        path = routingMap.get(n4);
+        assert path.size() == 3;
+        assert path.get(0).equals(e13) && path.get(1).equals(e35) && path.get(2).equals(e54);
+        //n1->n5
+        path = routingMap.get(n5);
+        assert path.size() == 2;
+        assert path.get(0).equals(e13) && path.get(1).equals(e35);
+        //n1->n1
+        path = routingMap.get(n1);
+        assert path.isEmpty();
+        
+        routingMap = RoutingProtocolsUtil.findRoutings(n4, g, RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY);
+        //n4->n2
+        path = routingMap.get(n2);
+        assert path.size() == 2;
+        assert path.get(0).equals(e45) && path.get(1).equals(e52);
+        //n4->n5
+        path = routingMap.get(n5);
+        assert path.size() == 1;
+        assert path.get(0).equals(e45);
+        //n4->n1
+        path = routingMap.get(n1);
+        assert path.size() == 3;
+        assert path.get(0).equals(e45) && path.get(1).equals(e52) && path.get(2).equals(e21);
         //n4->n3
         path = routingMap.get(n3);
         assert path.size() == 2;

@@ -21,6 +21,7 @@ public class OpenStackUtilTest {
 
     Graph g = null;
     HashMap<Node, HashMap<Node, List<Edge>>> routingMap = null;
+    HashMap<Integer, HashMap<String, Node>> communities = null;
 
     public OpenStackUtilTest() {
         Node n1 = new Node(0, "0");
@@ -74,19 +75,19 @@ public class OpenStackUtilTest {
 
         g = new Graph();
         g.addNodes(n1, n2, n3, n4, n5, n6, n7, n8);
-        HashMap<Integer, HashMap<String, Node>> communities = g.getCommunities();
+        communities = g.getCommunities();
 
         routingMap = new HashMap<>();
         for (Node n : g.getNodes()) {
             if (n.getCommunityId() == 1) {
-                routingMap.put(n, RoutingProtocolsUtil.findRoutings(n, communities.get(1), RoutingProtocolsUtil.RoutingProtocols.SIMPLE_SHORTEST_PATH));
+                routingMap.put(n, RoutingProtocolsUtil.findRoutings(n, g, RoutingProtocolsUtil.RoutingProtocols.SIMPLE_SHORTEST_PATH));
             }
         }
     }
 
     @Test
     public void testComputeBetweennessCentralityScores() {
-        HashMap<String, Integer> scores = OpenStackUtil.computeBetweennessCentralityScores(routingMap);
+        HashMap<String, Integer> scores = OpenStackUtil.computeBetweennessCentralityScores(communities.get(1), routingMap);
         assert scores.get("0") == 2;
         assert scores.get("1") == 4;
         assert scores.get("2") == 0;
@@ -99,11 +100,11 @@ public class OpenStackUtilTest {
      */
     @Test
     public void testSelectNode() {
-        Node n1 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, routingMap));
-        Node n2 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, routingMap, n1));
-        Node n3 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, routingMap, n1, n2));
-        Node n4 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, routingMap, n1, n2, n3));
-        Node n5 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, routingMap, n1, n2, n3, n4));
+        Node n1 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap));
+        Node n2 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap, n1));
+        Node n3 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap, n1, n2));
+        Node n4 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap, n1, n2, n3));
+        Node n5 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap, n1, n2, n3, n4));
 
         assert n1.getId() == 1;
         assert n2.getId() == 0;

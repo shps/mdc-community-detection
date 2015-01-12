@@ -5,11 +5,15 @@
  */
 package se.kth.mcac.simulation;
 
+import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.List;
 import org.junit.Test;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.graph.Node;
 import se.kth.mcac.simulation.communitycloud.OpenStackUtil;
+import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil;
 
 /**
  *
@@ -22,9 +26,11 @@ public class SimulationTest {
 
     /**
      * Test of main method, of class Simulation.
+     *
+     * @throws java.io.FileNotFoundException
      */
     @Test
-    public void testExecute() {
+    public void testExecute() throws FileNotFoundException {
         Node n1 = new Node(0, "0"); // DBMQ node
         n1.setCommunityId(1);
         Node n2 = new Node(1, "1"); // Controller node
@@ -45,15 +51,20 @@ public class SimulationTest {
         n3.addEdge(e32);
         Graph g = new Graph();
         g.addNodes(n1, n2, n3);
-        float t1 = Simulation.execute(1, g.getCommunities().get(1));
-        float t2 = OpenStackUtil.computeBootVMLatency(
+        HashMap<Node, HashMap<Node, List<Edge>>> routingMap = new HashMap<>();
+        for (Node n : g.getNodes()) {
+            routingMap.put(n, RoutingProtocolsUtil.findRoutings(n, g, RoutingProtocolsUtil.RoutingProtocols.SIMPLE_SHORTEST_PATH));
+        }
+        HashMap<Node, Float> results = Simulation.execute(1, g.getCommunities().get(1), routingMap, false);
+        assert results.size() == 1;
+        float t = OpenStackUtil.computeBootVMLatency(
                 e21.getLatency(),
                 e23.getLatency(),
                 e12.getLatency(),
                 e12.getLatency() + e23.getLatency(),
                 e32.getLatency() + e21.getLatency(),
                 e32.getLatency());
-        assert t1 == t2;
+        assert results.get(n3) == t;
     }
 
 }

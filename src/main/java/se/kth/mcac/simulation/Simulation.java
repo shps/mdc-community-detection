@@ -5,6 +5,7 @@
  */
 package se.kth.mcac.simulation;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,8 +28,8 @@ import se.kth.mcac.util.CsvConvertor;
 public class Simulation {
 
     static final String FILE_DIRECTORY = "/home/ganymedian/Desktop/sant-upc/";
-    static final String NODE_FILE = "85nodes.csv";
-    static final String EDGE_FILE = "85edges.csv";
+    static final String NODE_FILE = "nsinglecommunity.csv";
+    static final String EDGE_FILE = "esinglecommunity.csv";
     static final int MIN_COMMUNITY_SIZE = 3;
     static final int MAX_COMMUNITY_SIZE = 100;
 
@@ -39,33 +40,38 @@ public class Simulation {
 
         HashMap<Integer, HashMap<String, Node>> communities = g.getCommunities();
         Iterator<Entry<Integer, HashMap<String, Node>>> iterator = communities.entrySet().iterator();
+        HashMap<Node, HashMap<Node, List<Edge>>> routingMap = new HashMap<>();
+        for (Node n : g.getNodes()) {
+            routingMap.put(n, RoutingProtocolsUtil.findRoutings(n, g, RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY));
+        }
+        HashMap<Integer, HashMap<Node, Float>> results = new HashMap<>();
         while (iterator.hasNext()) {
             Entry<Integer, HashMap<String, Node>> entry = iterator.next();
-            execute(entry.getKey(), entry.getValue());
+            results.put(entry.getKey(), execute(entry.getKey(), entry.getValue(), routingMap, true));
         }
 
+        // TODO: print results
     }
 
-    public static float execute(int communityId, HashMap<String, Node> nodes) {
+    public static HashMap<Node, Float> execute(
+            int communityId,
+            HashMap<String, Node> nodes,
+            HashMap<Node, HashMap<Node, List<Edge>>> routingMap,
+            boolean printResult) throws FileNotFoundException {
+        HashMap<Node, Float> results = new HashMap<>();
         if (nodes.size() < MIN_COMMUNITY_SIZE || nodes.size() > MAX_COMMUNITY_SIZE) {
             print(String.format("ID: %d, Inappropriate community size %d", communityId, nodes.size()));
-            return -1;
+            return results;
         }
 
         print(String.format("**** Boot VM execution for community %d, Size: %d ****", communityId, nodes.size()));
-        HashMap<Node, HashMap<Node, List<Edge>>> routingMap = new HashMap<>();
-        Iterator<Entry<String, Node>> iterator = nodes.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Node n = iterator.next().getValue();
-            routingMap.put(n, RoutingProtocolsUtil.findRoutings(n, nodes, RoutingProtocols.SIMPLE_SHORTEST_PATH));
-        }
 
         // assign the Openstack rolls to the nodes.
-        Node controller = nodes.get(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, routingMap)); // Openstack Controler
-        Node dbmq = nodes.get(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, routingMap, controller)); // database and message queue
+        Node controller = nodes.get(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, nodes, routingMap)); // Openstack Controler
+        Node dbmq = nodes.get(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, nodes, routingMap, controller)); // database and message queue
         print(String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()));
         Node[] computes = new Node[nodes.size() - 2];
-        iterator = nodes.entrySet().iterator();
+        Iterator<Entry<String, Node>> iterator = nodes.entrySet().iterator();
         int i = 0;
         while (iterator.hasNext()) {
             Node n = iterator.next().getValue();
@@ -75,45 +81,32 @@ public class Simulation {
             }
         }
 
-        float t = bootVM(controller, dbmq, computes, routingMap);
+        for (Node n : computes) {
+            float t = bootVM(controller, dbmq, n, routingMap);
+            print(String.format("Total latency: %f", t));
+            results.put(n, t);
+        }
 
-        print(String.format("Total latency: %f", t));
-        
-        return t;
+        if (printResult) {
+            CsvConvertor.writeOutput(
+                    communityId,
+                    results,
+                    FILE_DIRECTORY,
+                    String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()));
+        }
+
+        return results;
     }
 
-    /**
-     * BootVM simplified scenario:
-     *
-     * 1- controller - dbmq (taking token) 2- controller - dbmq (token
-     * validation) 3- controller - dbmq (initial db entry for the new instance)
-     * 4- controller - dbmq (nova-controller put message) 5- controller - dbmq
-     * (scheduler pick message) 6- controller - dbmq (scheduler query database)
-     * 7- controller - dbmq (scheduler update database) 8- controller - dbmq
-     * (scheduler put launch message) 9- compute - dbmq (compute pick message)
-     * 10- compute - dbqm (compute put instance info request message) 11-
-     * controller - dbmq (conductor pick message) 12- controller - dbmq
-     * (conductor query database) 13- controller - dbmq (conductor put instance
-     * info message) 14- compute - dbmq (compute picks the instance info) 15-
-     * compute - controller (compute asks for the image) 16- controller - dbmq
-     * (glance validate the token) 17- controller - compute (sends the image
-     * metadata) 18- compute - controller (download image) 19- compute -
-     * controller (ask for the network configuration) 20- controller - dbmq
-     * (token validation) 21- controller - compute (sends the network info) 22-
-     * compute - controller (ask for the volume) 23- controller - dbmq (token
-     * validation) 24- controller - compute (sends volume info)
-     *
-     */
     private static float bootVM(
             Node controller,
             Node dbmq,
-            Node[] computes,
+            Node compute,
             HashMap<Node, HashMap<Node, List<Edge>>> routingMap) {
 
         // compute controller-dbmq communication cost in terms of the latency
         List<Edge> controllerDbmq = routingMap.get(controller).get(dbmq);
         List<Edge> dbmqController = routingMap.get(dbmq).get(controller);
-        Node compute = selectComputeNode(computes);
         print(String.format("Compute Node: %s", compute.getName()));
         List<Edge> computeDbmq = routingMap.get(compute).get(dbmq);
         List<Edge> dbmqCompute = routingMap.get(dbmq).get(compute);
@@ -127,9 +120,6 @@ public class Simulation {
         float computeControllerLatency = computeLatency(computeController);
         float controllerComputeLatency = computeLatency(controllerCompute);
 
-        //14 controller-dbmq communications
-        // 3 compute-dbmq communications
-        // 7 compute-controller communications
         float t = OpenStackUtil.computeBootVMLatency(
                 controllerDbmqLatency,
                 controllerComputeLatency,

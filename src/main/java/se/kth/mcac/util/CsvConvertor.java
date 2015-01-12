@@ -5,6 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.graph.Node;
@@ -31,6 +35,26 @@ public class CsvConvertor {
                     edgeWriter.println(String.format("%s,%s,%s,%d,%f,%f,%f",
                             e.getSrc(), e.getDst(), DIRECTED, e.getId(), e.getBw(), e.getLatency(), e.getWeight()));
                 }
+            }
+        }
+    }
+
+    /**
+     * Special for the result format of bootVM scenario.
+     *
+     * @param communityId
+     * @param results
+     * @param outputDir
+     * @param header
+     * @throws java.io.FileNotFoundException
+     */
+    public static void writeOutput(int communityId, HashMap<Node, Float> results, String outputDir, String header) throws FileNotFoundException {
+        try (PrintWriter writer = new PrintWriter(String.format("%sresult%d.csv", outputDir, communityId))) {
+            writer.println(header);
+            Iterator<Entry<Node, Float>> iterator = results.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Entry<Node, Float> entry = iterator.next();
+                writer.println(String.format("%s,%f", entry.getKey().getName(), entry.getValue()));
             }
         }
     }
