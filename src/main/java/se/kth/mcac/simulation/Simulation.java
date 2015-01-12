@@ -46,10 +46,10 @@ public class Simulation {
 
     }
 
-    private static void execute(int communityId, HashMap<String, Node> nodes) {
+    public static float execute(int communityId, HashMap<String, Node> nodes) {
         if (nodes.size() < MIN_COMMUNITY_SIZE || nodes.size() > MAX_COMMUNITY_SIZE) {
             print(String.format("ID: %d, Inappropriate community size %d", communityId, nodes.size()));
-            return;
+            return -1;
         }
 
         print(String.format("**** Boot VM execution for community %d, Size: %d ****", communityId, nodes.size()));
@@ -78,6 +78,8 @@ public class Simulation {
         float t = bootVM(controller, dbmq, computes, routingMap);
 
         print(String.format("Total latency: %f", t));
+        
+        return t;
     }
 
     /**
@@ -128,9 +130,13 @@ public class Simulation {
         //14 controller-dbmq communications
         // 3 compute-dbmq communications
         // 7 compute-controller communications
-        float t = 14 * (controllerDbmqLatency + dbmqControllerLatency)
-                + 3 * (computeDbmqLatency + dbmqComputeLatency)
-                + 7 * (computeControllerLatency + controllerComputeLatency);
+        float t = OpenStackUtil.computeBootVMLatency(
+                controllerDbmqLatency,
+                controllerComputeLatency,
+                dbmqControllerLatency,
+                dbmqComputeLatency,
+                computeDbmqLatency,
+                computeControllerLatency);
 
         return t;
     }

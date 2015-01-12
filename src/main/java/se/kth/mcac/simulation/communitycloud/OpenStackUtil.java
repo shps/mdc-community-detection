@@ -106,4 +106,26 @@ public class OpenStackUtil {
             scores.put(nodeName, 0);
         }
     }
+
+    /**
+     * 
+     * @param controllerDbmqLatency
+     * @param controllerComputeLatency
+     * @param dbmqControllerLatency
+     * @param dbmqComputeLatency
+     * @param computeDbmqLatency
+     * @param computeControllerLatency
+     * @return 
+     */
+    public static float computeBootVMLatency(
+            float controllerDbmqLatency,
+            float controllerComputeLatency,
+            float dbmqControllerLatency,
+            float dbmqComputeLatency,
+            float computeDbmqLatency,
+            float computeControllerLatency) {
+        return 14 * (controllerDbmqLatency + dbmqControllerLatency)
+                + 3 * (computeDbmqLatency + dbmqComputeLatency)
+                + 7 * (computeControllerLatency + controllerComputeLatency);
+    }
 }
