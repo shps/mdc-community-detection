@@ -92,8 +92,10 @@ public class OpenStackUtil {
                 if (path.size() > 1) {
                     for (int i = 0; i < path.size() - 1; i++) {
                         String dstName = path.get(i).getDst();
-                        checkScoreEntry(dstName, scores);
-                        scores.put(dstName, scores.get(dstName) + 1);
+                        if (candidates.containsKey(dstName)) {
+                            checkScoreEntry(dstName, scores);
+                            scores.put(dstName, scores.get(dstName) + 1);
+                        }
                     }
                 }
             }

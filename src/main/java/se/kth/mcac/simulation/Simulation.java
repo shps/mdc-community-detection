@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package se.kth.mcac.simulation;
 
 import java.io.FileNotFoundException;
@@ -28,8 +23,8 @@ import se.kth.mcac.util.CsvConvertor;
 public class Simulation {
 
     static final String FILE_DIRECTORY = "/home/ganymedian/Desktop/sant-upc/";
-    static final String NODE_FILE = "nsinglecommunity.csv";
-    static final String EDGE_FILE = "esinglecommunity.csv";
+    static final String NODE_FILE = "125nodes.csv";
+    static final String EDGE_FILE = "125edges.csv";
     static final int MIN_COMMUNITY_SIZE = 3;
     static final int MAX_COMMUNITY_SIZE = 100;
 

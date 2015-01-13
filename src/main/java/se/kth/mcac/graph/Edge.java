@@ -29,7 +29,8 @@ public class Edge {
     }
 
     public void computeWeight() {
-        this.weight = bw + 1/latency;
+//        this.weight = bw + 1/latency;
+        this.weight = 1/latency;
     }
 
     public float getWeight() {
