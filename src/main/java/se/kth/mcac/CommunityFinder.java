@@ -18,6 +18,7 @@ public class CommunityFinder {
 
     static final String DEFAULT_FILE_DIR = "/home/ganymedian/Desktop/sant-upc/";
     static final String FILE_NAME = "graph-53ad2481.json";
+    static final boolean MODULARITY_FOR_WEIGHTED_DIRECTED = true;
     static final float INIT_COLOR_ASSIGNMENT = 1f;
     static final int START_ITERATION = 1;
     static final int END_ITERATION = START_ITERATION + 200;
@@ -51,7 +52,7 @@ public class CommunityFinder {
             print(String.format("Communities: %d", numCom));
 
             before = System.currentTimeMillis();
-            double modularity = ModularityComputer.compute(g);
+            double modularity = ModularityComputer.compute(g, MODULARITY_FOR_WEIGHTED_DIRECTED);
             after = System.currentTimeMillis();
             print(String.format("Modularity = %f", modularity));
             print(String.format("Computation time for modularity: %d", after - before));
@@ -73,7 +74,7 @@ public class CommunityFinder {
                 after = System.currentTimeMillis();
                 System.out.println(String.format("Computation time for MGroup is %d", after - before));
                 double temp = modularity;
-                modularity = ModularityComputer.compute(g);
+                modularity = ModularityComputer.compute(g, MODULARITY_FOR_WEIGHTED_DIRECTED);
                 print(String.format("After MGroup Modularity = %f", modularity));
                 int newNumCom = g.getNumCommunities();
                 print(String.format("Number of Communities %d", newNumCom));

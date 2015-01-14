@@ -21,6 +21,6 @@ public class NewClass {
         CsvConvertor convertor = new CsvConvertor();
 //        convertor.convertAndWrite(g, String.format("%s%d", "/home/hooman/Desktop/gephi results/", 1000));
         Graph g = convertor.convertAndRead(nodeFile, edgeFile);
-        System.out.println(ModularityComputer.compute(g));
+        System.out.println(ModularityComputer.compute(g, false));
     }
 }

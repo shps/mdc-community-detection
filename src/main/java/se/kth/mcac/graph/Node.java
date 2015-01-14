@@ -1,5 +1,6 @@
 package se.kth.mcac.graph;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -37,20 +38,17 @@ public class Node {
      * Adds a new edge to the edge lists.
      *
      * @param e
-     * @return a list of edges including the new edge.
      */
     public void addEdge(Edge e) {
         edges.add(e);
     }
 
     /**
-     * 
-     * @param es 
+     *
+     * @param es
      */
     public void addEdges(Edge... es) {
-        for (Edge e : es) {
-            edges.add(e);
-        }
+        edges.addAll(Arrays.asList(es));
     }
 
     /**
@@ -60,6 +58,21 @@ public class Node {
      */
     public int getDegree() {
         return edges.size();
+    }
+
+    /**
+     * returns sum of the weights. If the graph is directed, this only returns
+     * the sum of the outbound edges.
+     *
+     * @return
+     */
+    public double getSumOfWeights() {
+        double sum = 0;
+        for (Edge e : edges) {
+            sum += e.getWeight();
+        }
+
+        return sum;
     }
 
     /**

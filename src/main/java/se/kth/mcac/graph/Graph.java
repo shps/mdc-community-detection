@@ -55,7 +55,7 @@ public class Graph {
 
         for (Node n : getNodes()) {
             for (Edge e : n.getEdges()) {
-                sum += e.getWeight();
+                sum += (double) e.getWeight();
             }
         }
 
