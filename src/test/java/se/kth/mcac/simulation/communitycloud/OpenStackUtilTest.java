@@ -96,15 +96,15 @@ public class OpenStackUtilTest {
     }
 
     /**
-     * Test of selectNode method, of class OpenStackUtil.
+     * Test of selectController method, of class OpenStackUtil.
      */
     @Test
     public void testSelectNode() {
-        Node n1 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap));
-        Node n2 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap, n1));
-        Node n3 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap, n1, n2));
-        Node n4 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap, n1, n2, n3));
-        Node n5 = g.getNode(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap, n1, n2, n3, n4));
+        Node n1 = g.getNode(OpenStackUtil.selectController(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap));
+        Node n2 = g.getNode(OpenStackUtil.selectController(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap, n1));
+        Node n3 = g.getNode(OpenStackUtil.selectController(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap, n1, n2));
+        Node n4 = g.getNode(OpenStackUtil.selectController(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap, n1, n2, n3));
+        Node n5 = g.getNode(OpenStackUtil.selectController(SelectionStrategy.BETWEENNESS_CENTRALITY, communities.get(1), routingMap, n1, n2, n3, n4));
 
         assert n1.getId() == 1;
         assert n2.getId() == 0;

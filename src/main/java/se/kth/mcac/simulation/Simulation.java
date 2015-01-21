@@ -23,8 +23,8 @@ import se.kth.mcac.util.CsvConvertor;
 public class Simulation {
 
     static final String FILE_DIRECTORY = "/home/ganymedian/Desktop/sant-upc/";
-    static final String NODE_FILE = "nsinglecommunity.csv";
-    static final String EDGE_FILE = "esinglecommunity.csv";
+    static final String NODE_FILE = "147nodes.csv";
+    static final String EDGE_FILE = "147edges.csv";
     static final int MIN_COMMUNITY_SIZE = 3;
     static final int MAX_COMMUNITY_SIZE = 100;
 
@@ -62,8 +62,16 @@ public class Simulation {
         print(String.format("**** Boot VM execution for community %d, Size: %d ****", communityId, nodes.size()));
 
         // assign the Openstack rolls to the nodes.
-        Node controller = nodes.get(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, nodes, routingMap)); // Openstack Controler
-        Node dbmq = nodes.get(OpenStackUtil.selectNode(SelectionStrategy.BETWEENNESS_CENTRALITY, nodes, routingMap, controller)); // database and message queue
+        Node controller = nodes.get(OpenStackUtil.selectController(
+                SelectionStrategy.BETWEENNESS_CENTRALITY,
+                nodes,
+                routingMap)); // Openstack Controler
+        Node dbmq = nodes.get(OpenStackUtil.selectDbmq(
+                SelectionStrategy.BETWEENNESS_CENTRALITY,
+                controller,
+                nodes,
+                routingMap,
+                controller)); // database and message queue
         print(String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()));
         Node[] computes = new Node[nodes.size() - 2];
         Iterator<Entry<String, Node>> iterator = nodes.entrySet().iterator();

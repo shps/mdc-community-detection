@@ -35,7 +35,7 @@ public class OpenStackUtil {
      * @param excludes
      * @return
      */
-    public static String selectNode(
+    public static String selectController(
             SelectionStrategy strategy,
             HashMap<String, Node> candidates,
             HashMap<Node, HashMap<Node, List<Edge>>> routingMap,
@@ -43,13 +43,52 @@ public class OpenStackUtil {
         String n = null;
         switch (strategy) {
             case BETWEENNESS_CENTRALITY:
-                n = selectByBetweenness(candidates, routingMap, excludes);
+                n = selectControllerByBetweenness(candidates, routingMap, excludes);
         }
         return n;
     }
 
+    public static String selectDbmq(
+            SelectionStrategy strategy,
+            Node controller,
+            HashMap<String, Node> candidates,
+            HashMap<Node, HashMap<Node, List<Edge>>> routingMap,
+            Node... excludes) {
+        String n = null;
+        switch (strategy) {
+            case BETWEENNESS_CENTRALITY:
+                n = selectDbmqByBetweennessCentrality(controller, candidates, routingMap, excludes);
+        }
+        return n;
+
+    }
+
+    private static String selectDbmqByBetweennessCentrality(
+            Node controller,
+            HashMap<String, Node> candidates,
+            HashMap<Node, HashMap<Node, List<Edge>>> routingMap,
+            Node[] excludes) {
+        HashMap<String, Integer> scores = computeBetweennessCentralityScores(candidates, routingMap);
+
+        List<Edge> edges = controller.getEdges();
+        String maxNode = null;
+        int maxScore = Integer.MIN_VALUE;
+
+        for (Edge e : edges) {
+            String adjNode = e.getDst();
+            if (candidates.containsKey(adjNode) && !isInExcludes(adjNode, excludes)) {
+                if (scores.get(adjNode) > maxScore) {
+                    maxScore = scores.get(adjNode);
+                    maxNode = adjNode;
+                }
+            }
+        }
+
+        return maxNode;
+    }
+
     //TODO: This is not a complete version of betweenness. It does not cosider all the paths. i.e. In case of two similar shortest paths it only considers one path not both.
-    private static String selectByBetweenness(
+    private static String selectControllerByBetweenness(
             HashMap<String, Node> candidates,
             HashMap<Node, HashMap<Node, List<Edge>>> routingMap,
             Node[] excludes) {
