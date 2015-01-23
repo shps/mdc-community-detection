@@ -35,7 +35,7 @@ public class Simulation {
 
         HashMap<Integer, HashMap<String, Node>> communities = g.getCommunities();
         Iterator<Entry<Integer, HashMap<String, Node>>> iterator = communities.entrySet().iterator();
-        HashMap<Node, HashMap<Node, List<Edge>>> routingMap = new HashMap<>();
+        HashMap<Node, HashMap<Node, List<List<Edge>>>> routingMap = new HashMap<>();
         for (Node n : g.getNodes()) {
             routingMap.put(n, RoutingProtocolsUtil.findRoutings(n, g, RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY));
         }
@@ -51,7 +51,7 @@ public class Simulation {
     public static HashMap<Node, Float> execute(
             int communityId,
             HashMap<String, Node> nodes,
-            HashMap<Node, HashMap<Node, List<Edge>>> routingMap,
+            HashMap<Node, HashMap<Node, List<List<Edge>>>> routingMap,
             boolean printResult) throws FileNotFoundException {
         HashMap<Node, Float> results = new HashMap<>();
         if (nodes.size() < MIN_COMMUNITY_SIZE || nodes.size() > MAX_COMMUNITY_SIZE) {
@@ -105,16 +105,16 @@ public class Simulation {
             Node controller,
             Node dbmq,
             Node compute,
-            HashMap<Node, HashMap<Node, List<Edge>>> routingMap) {
+            HashMap<Node, HashMap<Node, List<List<Edge>>>> routingMap) {
 
         // compute controller-dbmq communication cost in terms of the latency
-        List<Edge> controllerDbmq = routingMap.get(controller).get(dbmq);
-        List<Edge> dbmqController = routingMap.get(dbmq).get(controller);
+        List<Edge> controllerDbmq = routingMap.get(controller).get(dbmq).get(0);
+        List<Edge> dbmqController = routingMap.get(dbmq).get(controller).get(0);
         print(String.format("Compute Node: %s", compute.getName()));
-        List<Edge> computeDbmq = routingMap.get(compute).get(dbmq);
-        List<Edge> dbmqCompute = routingMap.get(dbmq).get(compute);
-        List<Edge> computeController = routingMap.get(compute).get(controller);
-        List<Edge> controllerCompute = routingMap.get(controller).get(compute);
+        List<Edge> computeDbmq = routingMap.get(compute).get(dbmq).get(0);
+        List<Edge> dbmqCompute = routingMap.get(dbmq).get(compute).get(0);
+        List<Edge> computeController = routingMap.get(compute).get(controller).get(0);
+        List<Edge> controllerCompute = routingMap.get(controller).get(compute).get(0);
 
         float controllerDbmqLatency = computeLatency(controllerDbmq);
         float dbmqControllerLatency = computeLatency(dbmqController);
