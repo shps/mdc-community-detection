@@ -1,12 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package se.kth.mcac.simulation.communitycloud;
 
 import java.util.HashMap;
-import java.util.List;
 import org.junit.Test;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
@@ -106,29 +100,21 @@ public class RoutingProtocolsUtilTest {
 
         Graph g = new Graph();
         g.addNodes(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10);
-        
-//        HashMap<Node, TreeNode> routingMap = RoutingProtocolsUtil.findRoutings(n3, g, RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY);
+
+        HashMap<Node, TreeNode> routingMap = RoutingProtocolsUtil.findRoutings(n3, g, RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY);
         //n4->n2
-//        List<Edge> path = routingMap.get(n2).get(0);
-//        assert path.size() == 2;
-//        assert path.get(0).equals(e45) && path.get(1).equals(e52);
-//        //n4->n5
-//        path = routingMap.get(n5).get(0);
-//        assert path.size() == 1;
-//        assert path.get(0).equals(e45);
-//        //n4->n1
-//        path = routingMap.get(n1).get(0);
-//        assert path.size() == 3;
-//        assert path.get(0).equals(e45) && path.get(1).equals(e52) && path.get(2).equals(e21);
-//        //n4->n3
-//        path = routingMap.get(n3).get(0);
-//        assert path.size() == 2;
-//        assert path.get(0).equals(e45) && path.get(1).equals(e53);
-        
-        
-        HashMap<Node, TreeNode> routingMap = RoutingProtocolsUtil.findRoutings(n0, g, RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY);
-        //n1->n11
-        TreeNode rt = routingMap.get(n10);
+        TreeNode rt = routingMap.get(n1);
+        assert rt.getN().equals(n3);
+        assert rt.getEdges().size() == 1;
+        rt = rt.getBranches().get(0);
+        assert rt.getN().equals(n4);
+        assert rt.getBranches().size() == 1;
+        rt = rt.getBranches().get(0);
+        assert rt.getN().equals(n1);
+
+        routingMap = RoutingProtocolsUtil.findRoutings(n0, g, RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY);
+        //n0->n10
+        rt = routingMap.get(n10);
         assert rt.getN().equals(n0);
         assert rt.getBranches().size() == 2;
         TreeNode rt1 = rt.getBranches().get(0);
@@ -151,64 +137,3 @@ public class RoutingProtocolsUtilTest {
     }
 
 }
-
-
-//        HashMap<Node, List<Edge>> routingMap = RoutingProtocolsUtil.findRoutings(n1, g, RoutingProtocols.SIMPLE_SHORTEST_PATH);
-        // Check the correctness of the routing map
-        //n1->n2
-//        List<Edge> path = routingMap.get(n2);
-//        assert path.size() == 1;
-//        assert path.get(0).equals(e12);
-//        //n1->n3
-//        path = routingMap.get(n3);
-//        assert path.size() == 1;
-//        assert path.get(0).equals(e13);
-//        //n1->n4
-//        path = routingMap.get(n4);
-//        assert path.size() == 2;
-//        assert path.get(0).equals(e12) && path.get(1).equals(e24);
-//        //n1->n5
-//        path = routingMap.get(n5);
-//        assert path.size() == 2;
-//        assert (path.get(0).equals(e12) && path.get(1).equals(e25)) || (path.get(0).equals(e13) && path.get(1).equals(e35));
-//        //n1->n1
-//        path = routingMap.get(n1);
-//        assert path.isEmpty();
-//        
-//        routingMap = RoutingProtocolsUtil.findRoutings(n4, g, RoutingProtocols.SIMPLE_SHORTEST_PATH);
-//        //n4->n2
-//        path = routingMap.get(n2);
-//        assert path.size() == 1;
-//        assert path.get(0).equals(e42);
-//        //n4->n5
-//        path = routingMap.get(n5);
-//        assert path.size() == 1;
-//        assert path.get(0).equals(e45);
-//        //n4->n1
-//        path = routingMap.get(n1);
-//        assert path.size() == 2;
-//        assert path.get(0).equals(e42) && path.get(1).equals(e21);
-//        //n4->n3
-//        path = routingMap.get(n3);
-//        assert path.size() == 2;
-//        assert path.get(0).equals(e45) && path.get(1).equals(e53);
-//        
-//        routingMap = RoutingProtocolsUtil.findRoutings(n1, g, RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY);
-//        path = routingMap.get(n2);
-//        assert path.size() == 3;
-//        assert path.get(0).equals(e13) && path.get(1).equals(e35) && path.get(2).equals(e52);
-//        //n1->n3
-//        path = routingMap.get(n3);
-//        assert path.size() == 1;
-//        assert path.get(0).equals(e13);
-//        //n1->n4
-//        path = routingMap.get(n4);
-//        assert path.size() == 3;
-//        assert path.get(0).equals(e13) && path.get(1).equals(e35) && path.get(2).equals(e54);
-//        //n1->n5
-//        path = routingMap.get(n5);
-//        assert path.size() == 2;
-//        assert path.get(0).equals(e13) && path.get(1).equals(e35);
-//        //n1->n1
-//        path = routingMap.get(n1);
-//        assert path.isEmpty();

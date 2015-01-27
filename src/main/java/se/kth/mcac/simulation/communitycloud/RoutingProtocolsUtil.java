@@ -77,108 +77,20 @@ public class RoutingProtocolsUtil {
         }
     }
 
-    /**
-     * Finds the shortest paths between the target node and the rest of the
-     * community nodes.
-     *
-     * @param targetNode
-     * @param communityNodes
-     * @return a map of ID of the nodes and the edges of the shortest path to
-     * the target node.
-     */
-//    private static HashMap<Node, List<Edge>> findShortestPaths(Node targetNode, Graph g) {
-//        HashMap<Node, List<Edge>> paths = new HashMap<>(); // all the shortest paths
-//        HashSet<Node> others = new HashSet<>();
-//        Collections.addAll(others, g.getNodes());
-//        Queue<Node> toVisit = new LinkedList<>();
-//        HashSet<Node> visited = new HashSet<>();
-//        HashMap<Node, List<Edge>> parents = new HashMap(); // To trace the path.
-//
-//        // Find paths
-//        toVisit.add(targetNode);
-//        while (!toVisit.isEmpty() && !others.isEmpty()) {
-//            Node n = toVisit.poll();
-//            if (!visited.contains(n)) {
-//                visited.add(n);
-//                for (Edge node : n.getEdges()) {
-//                    Node dst = g.getNode(node.getDst());
-//                    if (!others.contains(dst)) {
-//                        continue;
-//                    }
-//                    others.remove(dst);
-//                    parents.put(dst, node);
-//                    if (!visited.contains(dst)) {
-//                        toVisit.add(dst);
-//                    }
-//                }
-//            }
-//        }
-//
-//        // Extract paths
-//        for (Node n : g.getNodes()) {
-//            final List<Edge> path = new LinkedList<>();
-//            if (!n.equals(targetNode)) {
-//                backtrack(targetNode, n, parents, path, g);
-//            }
-//            paths.put(n, path);
-//        }
-//
-//        return paths;
-//    }
     private static HashMap<Node, TreeNode> findShortestPathsBasedOnLatency(Node targetNode, Graph g) {
 
         HashMap<Node, List<Edge>> parents = dijkstra(targetNode, g);
         HashMap<Node, TreeNode> paths = new HashMap<>(g.size());
         for (Node n : g.getNodes()) {
-            TreeNode routingTree = findPaths(targetNode, n, parents, g);
-            paths.put(n, routingTree);
+            if (!n.equals(targetNode)) {
+                TreeNode routingTree = findPaths(targetNode, n, parents, g);
+                paths.put(n, routingTree);
+            }
         }
 
         return paths;
     }
 
-//    private static HashMap<Node, Edge> dijkstra(Node targetNode, Graph g) {
-//        HashMap<Node, Boolean> inTree = new HashMap<>(g.size());
-//        HashMap<Node, Float> distance = new HashMap<>(g.size());
-//        HashMap<Node, Edge> parents = new HashMap<>();
-//        Node v; // current node
-//        Node w; // next candidate
-//        float weight;
-//        float dist; // best current destination from start
-//
-//        for (Node n : g.getNodes()) {
-//            inTree.put(n, false);
-//            distance.put(n, Float.MAX_VALUE);
-//            parents.put(n, null);
-//        }
-//
-//        distance.put(targetNode, 0f);
-//        v = targetNode;
-//
-//        while (!inTree.get(v)) {
-//            inTree.put(v, true);
-//            List<Edge> es = v.getEdges();
-//            for (Edge node : es) {
-//                w = g.getNode(node.getDst());
-//                weight = node.getLatency(); // only considering latency
-//                float weightThrough = distance.get(v) + weight;
-//                if (distance.get(w) > weightThrough) {
-//                    distance.put(w, weightThrough);
-//                    parents.put(w, node);
-//                }
-//            }
-//
-//            dist = Float.MAX_VALUE;
-//            for (Node n : g.getNodes()) {
-//                if (!inTree.get(n) && distance.get(n) < dist) {
-//                    dist = distance.get(n);
-//                    v = n;
-//                }
-//            }
-//        }
-//
-//        return parents;
-//    }
     private static HashMap<Node, List<Edge>> dijkstra(Node targetNode, Graph g) {
         HashMap<Node, Boolean> inTree = new HashMap<>(g.size());
         HashMap<Node, Float> distance = new HashMap<>(g.size());
@@ -196,11 +108,8 @@ public class RoutingProtocolsUtil {
 
         distance.put(targetNode, 0f);
         v = targetNode;
-//        LinkedList<Node> toProcess = new LinkedList<>();
-//        toProcess.add(v);
 
         while (!inTree.get(v)) {
-//            v = toProcess.remove();
             inTree.put(v, true);
             List<Edge> es = v.getEdges();
             for (Edge e : es) {
@@ -225,7 +134,6 @@ public class RoutingProtocolsUtil {
                 if (!inTree.get(n) && distance.get(n) != Float.MAX_VALUE && distance.get(n) <= dist) { // considering multiple short paths
                     dist = distance.get(n);
                     v = n;
-//                    toProcess.add(n);
                 }
             }
         }
@@ -235,10 +143,6 @@ public class RoutingProtocolsUtil {
 
     private static TreeNode findPaths(Node targetNode, Node n, HashMap<Node, List<Edge>> parents, Graph g) {
         TreeNode root = new TreeNode(targetNode.getId(), targetNode.getName());
-        TreeNode leaf = new TreeNode(n.getId(), n.getName());
-        if (n.getId() == 10) {
-            System.out.println();
-        }
         HashMap<Integer, TreeNode> cache = new HashMap();
         backtrack(targetNode, n, parents, root, null, null, cache, g);
         return root;

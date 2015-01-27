@@ -4,16 +4,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
-import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.graph.Node;
 import se.kth.mcac.simulation.communitycloud.OpenStackUtil;
 import se.kth.mcac.simulation.communitycloud.OpenStackUtil.SelectionStrategy;
 import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil;
 import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil.RoutingProtocols;
+import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil.TreeNode;
 import se.kth.mcac.util.CsvConvertor;
 
 /**
@@ -35,7 +34,7 @@ public class Simulation {
 
         HashMap<Integer, HashMap<String, Node>> communities = g.getCommunities();
         Iterator<Entry<Integer, HashMap<String, Node>>> iterator = communities.entrySet().iterator();
-        HashMap<Node, HashMap<Node, List<List<Edge>>>> routingMap = new HashMap<>();
+        HashMap<Node, HashMap<Node, TreeNode>> routingMap = new HashMap<>();
         for (Node n : g.getNodes()) {
             routingMap.put(n, RoutingProtocolsUtil.findRoutings(n, g, RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY));
         }
@@ -51,7 +50,7 @@ public class Simulation {
     public static HashMap<Node, Float> execute(
             int communityId,
             HashMap<String, Node> nodes,
-            HashMap<Node, HashMap<Node, List<List<Edge>>>> routingMap,
+            HashMap<Node, HashMap<Node, TreeNode>> routingMap,
             boolean printResult) throws FileNotFoundException {
         HashMap<Node, Float> results = new HashMap<>();
         if (nodes.size() < MIN_COMMUNITY_SIZE || nodes.size() > MAX_COMMUNITY_SIZE) {
@@ -105,23 +104,17 @@ public class Simulation {
             Node controller,
             Node dbmq,
             Node compute,
-            HashMap<Node, HashMap<Node, List<List<Edge>>>> routingMap) {
+            HashMap<Node, HashMap<Node, TreeNode>> routingMap) {
 
         // compute controller-dbmq communication cost in terms of the latency
-        List<Edge> controllerDbmq = routingMap.get(controller).get(dbmq).get(0);
-        List<Edge> dbmqController = routingMap.get(dbmq).get(controller).get(0);
         print(String.format("Compute Node: %s", compute.getName()));
-        List<Edge> computeDbmq = routingMap.get(compute).get(dbmq).get(0);
-        List<Edge> dbmqCompute = routingMap.get(dbmq).get(compute).get(0);
-        List<Edge> computeController = routingMap.get(compute).get(controller).get(0);
-        List<Edge> controllerCompute = routingMap.get(controller).get(compute).get(0);
 
-        float controllerDbmqLatency = computeLatency(controllerDbmq);
-        float dbmqControllerLatency = computeLatency(dbmqController);
-        float computeDbmqLatency = computeLatency(computeDbmq);
-        float dbmqComputeLatency = computeLatency(dbmqCompute);
-        float computeControllerLatency = computeLatency(computeController);
-        float controllerComputeLatency = computeLatency(controllerCompute);
+        float controllerDbmqLatency = computeLatency(routingMap.get(controller).get(dbmq));
+        float dbmqControllerLatency = computeLatency(routingMap.get(dbmq).get(controller));
+        float computeDbmqLatency = computeLatency(routingMap.get(compute).get(dbmq));
+        float dbmqComputeLatency = computeLatency(routingMap.get(dbmq).get(compute));
+        float computeControllerLatency = computeLatency(routingMap.get(compute).get(controller));
+        float controllerComputeLatency = computeLatency(routingMap.get(controller).get(compute));
 
         float t = OpenStackUtil.computeBootVMLatency(
                 controllerDbmqLatency,
@@ -145,14 +138,13 @@ public class Simulation {
         return computes[r.nextInt(computes.length)];
     }
 
-    private static float computeLatency(List<Edge> paths) {
-        float l = 0;
+    private static float computeLatency(TreeNode head) {
 
-        for (Edge e : paths) {
-            l = l + e.getLatency();
+        if (head.getBranches().isEmpty()) {
+            return 0;
         }
 
-        return l;
+        return head.getEdges().get(0).getLatency() + computeLatency(head.getBranches().get(0));
     }
 
     private static void print(String message) {

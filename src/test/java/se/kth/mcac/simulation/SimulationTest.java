@@ -7,13 +7,13 @@ package se.kth.mcac.simulation;
 
 import java.io.FileNotFoundException;
 import java.util.HashMap;
-import java.util.List;
 import org.junit.Test;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.graph.Node;
 import se.kth.mcac.simulation.communitycloud.OpenStackUtil;
 import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil;
+import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil.TreeNode;
 
 /**
  *
@@ -51,9 +51,9 @@ public class SimulationTest {
         n3.addEdge(e32);
         Graph g = new Graph();
         g.addNodes(n1, n2, n3);
-        HashMap<Node, HashMap<Node, List<Edge>>> routingMap = new HashMap<>();
+        HashMap<Node, HashMap<Node, TreeNode>> routingMap = new HashMap<>();
         for (Node n : g.getNodes()) {
-            routingMap.put(n, RoutingProtocolsUtil.findRoutings(n, g, RoutingProtocolsUtil.RoutingProtocols.SIMPLE_SHORTEST_PATH));
+            routingMap.put(n, RoutingProtocolsUtil.findRoutings(n, g, RoutingProtocolsUtil.RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY));
         }
         HashMap<Node, Float> results = Simulation.execute(1, g.getCommunities().get(1), routingMap, false);
         assert results.size() == 1;

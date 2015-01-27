@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Node;
+import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil.TreeNode;
 
 /**
  *
@@ -38,7 +39,7 @@ public class OpenStackUtil {
     public static String selectController(
             SelectionStrategy strategy,
             HashMap<String, Node> candidates,
-            HashMap<Node, HashMap<Node, List<Edge>>> routingMap,
+            HashMap<Node, HashMap<Node, TreeNode>> routingMap,
             Node... excludes) {
         String n = null;
         switch (strategy) {
@@ -52,7 +53,7 @@ public class OpenStackUtil {
             SelectionStrategy strategy,
             Node controller,
             HashMap<String, Node> candidates,
-            HashMap<Node, HashMap<Node, List<Edge>>> routingMap,
+            HashMap<Node, HashMap<Node, TreeNode>> routingMap,
             Node... excludes) {
         String n = null;
         switch (strategy) {
@@ -66,7 +67,7 @@ public class OpenStackUtil {
     private static String selectDbmqByBetweennessCentrality(
             Node controller,
             HashMap<String, Node> candidates,
-            HashMap<Node, HashMap<Node, List<Edge>>> routingMap,
+            HashMap<Node, HashMap<Node, TreeNode>> routingMap,
             Node[] excludes) {
         HashMap<String, Integer> scores = computeBetweennessCentralityScores(candidates, routingMap);
 
@@ -90,7 +91,7 @@ public class OpenStackUtil {
     //TODO: This is not a complete version of betweenness. It does not cosider all the paths. i.e. In case of two similar shortest paths it only considers one path not both.
     private static String selectControllerByBetweenness(
             HashMap<String, Node> candidates,
-            HashMap<Node, HashMap<Node, List<Edge>>> routingMap,
+            HashMap<Node, HashMap<Node, TreeNode>> routingMap,
             Node[] excludes) {
         HashMap<String, Integer> scores = computeBetweennessCentralityScores(candidates, routingMap);
 
@@ -122,25 +123,38 @@ public class OpenStackUtil {
 
     public static HashMap<String, Integer> computeBetweennessCentralityScores(
             HashMap<String, Node> candidates,
-            HashMap<Node, HashMap<Node, List<Edge>>> routingMap) {
+            HashMap<Node, HashMap<Node, TreeNode>> routingMap) {
         HashMap<String, Integer> scores = new HashMap<>();
         for (Node src : candidates.values()) {
             checkScoreEntry(src.getName(), scores);
             for (Node dst : candidates.values()) {
-                List<Edge> path = routingMap.get(src).get(dst);
-                if (path.size() > 1) {
-                    for (int i = 0; i < path.size() - 1; i++) {
-                        String dstName = path.get(i).getDst();
-                        if (candidates.containsKey(dstName)) {
-                            checkScoreEntry(dstName, scores);
-                            scores.put(dstName, scores.get(dstName) + 1);
-                        }
-                    }
+                if (!src.equals(dst)) {
+                    updateScore(routingMap.get(src).get(dst), src, dst, scores, candidates);
                 }
             }
         }
 
         return scores;
+    }
+
+    private static void updateScore(
+            TreeNode head,
+            Node src,
+            Node dst,
+            HashMap<String, Integer> scores,
+            HashMap<String, Node> candidates) {
+        Node node = head.getN();
+        String name = node.getName();
+        if (!node.equals(src) && !node.equals(dst) && candidates.containsKey(name)) {
+            checkScoreEntry(name, scores);
+            scores.put(name, scores.get(name) + 1);
+        }
+
+        if (head.getBranches() != null) {
+            for (TreeNode next : head.getBranches()) {
+                updateScore(next, src, dst, scores, candidates);
+            }
+        }
     }
 
     private static void checkScoreEntry(String nodeName, HashMap<String, Integer> scores) {
