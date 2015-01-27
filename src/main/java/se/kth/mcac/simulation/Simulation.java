@@ -22,8 +22,10 @@ import se.kth.mcac.util.CsvConvertor;
 public class Simulation {
 
     static final String FILE_DIRECTORY = "/home/ganymedian/Desktop/sant-upc/";
-    static final String NODE_FILE = "147nodes.csv";
-    static final String EDGE_FILE = "147edges.csv";
+//    static final String NODE_FILE = "nsinglecommunity.csv";
+//    static final String EDGE_FILE = "esinglecommunity.csv";
+    static final String NODE_FILE = "125nodes.csv";
+    static final String EDGE_FILE = "125edges.csv";
     static final int MIN_COMMUNITY_SIZE = 3;
     static final int MAX_COMMUNITY_SIZE = 100;
 

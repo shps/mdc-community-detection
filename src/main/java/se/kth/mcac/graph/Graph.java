@@ -113,4 +113,12 @@ public class Graph {
 
         return cs;
     }
+
+    /**
+     *
+     * @param name
+     */
+    public void remove(String name) {
+        nodes.remove(name);
+    }
 }

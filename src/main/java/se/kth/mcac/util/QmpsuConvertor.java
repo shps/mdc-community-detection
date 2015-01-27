@@ -37,15 +37,25 @@ public class QmpsuConvertor {
      * Converts QMPSU's JSON file to Graph object.
      *
      * @param jsonFile
+     * @param excludeDisconnectedNodes
      * @return
      * @throws IOException
      */
-    public Graph convertToGraph(String jsonFile) throws IOException {
+    public Graph convertToGraph(String jsonFile, boolean excludeDisconnectedNodes) throws IOException {
         Graph graph = new Graph();
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.readValue(new File(jsonFile), JsonNode.class);
         extractGraph(rootNode, graph);
         generateMissingData(graph);
+
+        if (excludeDisconnectedNodes) {
+            excludeDisconnectedNodes(graph);
+            //Correct Ids.
+            Node[] nodes = graph.getNodes();
+            for (int i = 0; i < nodes.length; i++) {
+                nodes[i].setId(i);
+            }
+        }
 
         return graph;
     }
@@ -135,6 +145,15 @@ public class QmpsuConvertor {
             } else {
                 e.setLatency(DEFAULT_RTT);
                 otherEdge.setLatency(DEFAULT_RTT);
+            }
+        }
+    }
+
+    private void excludeDisconnectedNodes(Graph graph) {
+        for (Node n : graph.getNodes()) {
+            if (n.getEdges().isEmpty()) {
+                System.out.println(String.format("Node %s is a disconnected node and is removed!", n.getName()));
+                graph.remove(n.getName());
             }
         }
     }

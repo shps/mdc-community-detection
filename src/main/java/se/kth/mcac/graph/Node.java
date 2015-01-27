@@ -12,7 +12,7 @@ import java.util.Objects;
 public class Node {
 
     private final String name; // Unique node name in the network.
-    private final int id; // Internal unique id assigned to each node starting from 0, to simplify the semantic and overhead of algorithms.
+    private int id; // Internal unique id assigned to each node starting from 0, to simplify the semantic and overhead of algorithms.
     private int communityId; // Community name
     private final List<Edge> edges;
     private double lat, lon;
@@ -189,6 +189,13 @@ public class Node {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(int id) {
+        this.id = id;
     }
 
     public class Resource {
