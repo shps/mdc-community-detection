@@ -6,7 +6,7 @@
 package se.kth.mcac.simulation.communitycloud;
 
 import java.util.HashMap;
-import java.util.List;
+import java.util.Objects;
 import org.junit.Test;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
@@ -110,21 +110,21 @@ public class OpenStackUtilTest {
         routingMap = new HashMap<>();
         for (Node n : g.getNodes()) {
             routingMap.put(n, RoutingProtocolsUtil.findRoutings(n, g, RoutingProtocolsUtil.RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY));
-        }        
+        }
     }
 
     @Test
     public void testComputeBetweennessCentralityScores() {
-        HashMap<String, Integer> scores = OpenStackUtil.computeBetweennessCentralityScores(communities.get(1), routingMap);
+        HashMap<String, Float> scores = OpenStackUtil.computeBetweennessCentralityScores(communities.get(1), routingMap);
         assert scores.get("1") == 0;
         assert scores.get("2") == 0;
         assert scores.get("3") == 0;
-        assert scores.get("4") == 5;
-        
+        assert scores.get("4") == 4.5;
+
         scores = OpenStackUtil.computeBetweennessCentralityScores(communities.get(2), routingMap);
-        assert scores.get("7") == 28;
-        
-        assert scores.get("8") == scores.get("9") && scores.get("9") == 9;
+        assert scores.get("7") == 20;
+
+        assert scores.get("9") == 4.0 && Objects.equals(scores.get("9"), scores.get("8"));
     }
 
     /**

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Node;
 import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil.TreeNode;
@@ -69,11 +70,11 @@ public class OpenStackUtil {
             HashMap<String, Node> candidates,
             HashMap<Node, HashMap<Node, TreeNode>> routingMap,
             Node[] excludes) {
-        HashMap<String, Integer> scores = computeBetweennessCentralityScores(candidates, routingMap);
+        HashMap<String, Float> scores = computeBetweennessCentralityScores(candidates, routingMap);
 
         List<Edge> edges = controller.getEdges();
         String maxNode = null;
-        int maxScore = Integer.MIN_VALUE;
+        float maxScore = Float.NEGATIVE_INFINITY;
 
         for (Edge e : edges) {
             String adjNode = e.getDst();
@@ -93,14 +94,14 @@ public class OpenStackUtil {
             HashMap<String, Node> candidates,
             HashMap<Node, HashMap<Node, TreeNode>> routingMap,
             Node[] excludes) {
-        HashMap<String, Integer> scores = computeBetweennessCentralityScores(candidates, routingMap);
+        HashMap<String, Float> scores = computeBetweennessCentralityScores(candidates, routingMap);
 
         String maxNode = null;
-        int maxScore = Integer.MIN_VALUE;
+        float maxScore = Float.NEGATIVE_INFINITY;
 
-        Iterator<Map.Entry<String, Integer>> iterator = scores.entrySet().iterator();
+        Iterator<Map.Entry<String, Float>> iterator = scores.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<String, Integer> entry = iterator.next();
+            Map.Entry<String, Float> entry = iterator.next();
             if (entry.getValue() > maxScore && !isInExcludes(entry.getKey(), excludes)) {
                 maxNode = entry.getKey();
                 maxScore = entry.getValue();
@@ -121,23 +122,34 @@ public class OpenStackUtil {
         return false;
     }
 
-    public static HashMap<String, Integer> computeBetweennessCentralityScores(
+    public static HashMap<String, Float> computeBetweennessCentralityScores(
             HashMap<String, Node> candidates,
             HashMap<Node, HashMap<Node, TreeNode>> routingMap) {
-        HashMap<String, Integer> scores = new HashMap<>();
+        HashMap<String, Float> bsScore = new HashMap<>();
         for (Node src : candidates.values()) {
-            checkScoreEntry(src.getName(), scores);
+            checkScoreEntry(src.getName(), bsScore);
             for (Node dst : candidates.values()) {
                 if (!src.equals(dst)) {
-                    updateScore(routingMap.get(src).get(dst), src, dst, scores, candidates);
+                    HashMap<String, Integer> scores = new HashMap<>();
+                    int totalPaths = updateScore(routingMap.get(src).get(dst), src, dst, scores, candidates);
+                    updateBsScores(bsScore, scores, totalPaths);
                 }
             }
         }
 
-        return scores;
+        return bsScore;
     }
 
-    private static void updateScore(
+    private static void updateBsScores(HashMap<String, Float> bsScore, HashMap<String, Integer> scores, int totalPaths) {
+        Iterator<Entry<String, Integer>> iterator = scores.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Entry<String, Integer> entry = iterator.next();
+            checkScoreEntry(entry.getKey(), bsScore);
+            bsScore.put(entry.getKey(), bsScore.get(entry.getKey()) + ((float)entry.getValue() / totalPaths));
+        }
+    }
+
+    private static int updateScore(
             TreeNode head,
             Node src,
             Node dst,
@@ -145,21 +157,31 @@ public class OpenStackUtil {
             HashMap<String, Node> candidates) {
         Node node = head.getN();
         String name = node.getName();
-        if (!node.equals(src) && !node.equals(dst) && candidates.containsKey(name)) {
-            checkScoreEntry(name, scores);
-            scores.put(name, scores.get(name) + 1);
+
+        if (node.equals(dst)) {
+            return 1;
         }
 
+        int paths = 0;
         if (head.getBranches() != null) {
             for (TreeNode next : head.getBranches()) {
-                updateScore(next, src, dst, scores, candidates);
+                paths += updateScore(next, src, dst, scores, candidates);
             }
         }
+        
+        if (!node.equals(src) && !node.equals(dst) && candidates.containsKey(name)) {
+            if (!scores.containsKey(name)) {
+                scores.put(name, 0);
+            }
+            scores.put(name, scores.get(name) + paths);
+        }
+        
+        return paths;
     }
 
-    private static void checkScoreEntry(String nodeName, HashMap<String, Integer> scores) {
+    private static void checkScoreEntry(String nodeName, HashMap<String, Float> scores) {
         if (!scores.containsKey(nodeName)) {
-            scores.put(nodeName, 0);
+            scores.put(nodeName, 0f);
         }
     }
 
