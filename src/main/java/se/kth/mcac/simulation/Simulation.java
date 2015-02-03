@@ -22,10 +22,10 @@ import se.kth.mcac.util.CsvConvertor;
 public class Simulation {
 
     static final String FILE_DIRECTORY = "/home/ganymedian/Desktop/sant-upc/";
-//    static final String NODE_FILE = "nsinglecommunity.csv";
-//    static final String EDGE_FILE = "esinglecommunity.csv";
-    static final String NODE_FILE = "125nodes.csv";
-    static final String EDGE_FILE = "125edges.csv";
+    static final String NODE_FILE = "nsinglecommunity.csv";
+    static final String EDGE_FILE = "esinglecommunity.csv";
+//    static final String NODE_FILE = "125nodes.csv";
+//    static final String EDGE_FILE = "125edges.csv";
     static final int MIN_COMMUNITY_SIZE = 3;
     static final int MAX_COMMUNITY_SIZE = 100;
 
@@ -92,9 +92,30 @@ public class Simulation {
         }
 
         if (printResult) {
-            CsvConvertor.writeOutput(
+            CsvConvertor.writeBootVmOutput(
                     communityId,
                     results,
+                    FILE_DIRECTORY,
+                    String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()));
+        }
+
+        print(String.format("**** Inter-compute nodes latency for community %d, Size: %d ****", communityId, nodes.size()));
+        HashMap<Node, HashMap<Node, Float>> lResults = new HashMap<>();
+        for (Node n1 : computes) {
+            lResults.put(n1, new HashMap<Node, Float>());
+            for (Node n2 : computes) {
+                if (!n1.equals(n2)) {
+                    float l = computeLatency(routingMap.get(n1).get(n2));
+                    print(String.format("%s\t%s\t%f", n1.getName(), n2.getName(), l));
+                    lResults.get(n1).put(n2, l);
+                }
+            }
+        }
+
+        if (printResult) {
+            CsvConvertor.writeLatencyOutput(
+                    communityId,
+                    lResults,
                     FILE_DIRECTORY,
                     String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()));
         }

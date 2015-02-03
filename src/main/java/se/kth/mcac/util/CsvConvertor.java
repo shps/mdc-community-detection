@@ -47,13 +47,44 @@ public class CsvConvertor {
      * @param header
      * @throws java.io.FileNotFoundException
      */
-    public static void writeOutput(int communityId, HashMap<Node, Float> results, String outputDir, String header) throws FileNotFoundException {
-        try (PrintWriter writer = new PrintWriter(String.format("%sresult%d.csv", outputDir, communityId))) {
+    public static void writeBootVmOutput(int communityId, HashMap<Node, Float> results, String outputDir, String header) throws FileNotFoundException {
+        try (PrintWriter writer = new PrintWriter(String.format("%sbvresult%d.csv", outputDir, communityId))) {
             writer.println(header);
             Iterator<Entry<Node, Float>> iterator = results.entrySet().iterator();
             while (iterator.hasNext()) {
                 Entry<Node, Float> entry = iterator.next();
                 writer.println(String.format("%s,%f", entry.getKey().getName(), entry.getValue()));
+            }
+        }
+    }
+
+    /**
+     * Special for the result format of inter-compute nodes latency scenario.
+     *
+     * @param communityId
+     * @param results
+     * @param outputDir
+     * @param header
+     * @throws java.io.FileNotFoundException
+     */
+    public static void writeLatencyOutput(
+            int communityId,
+            HashMap<Node, HashMap<Node, Float>> results,
+            String outputDir,
+            String header) throws FileNotFoundException {
+        try (PrintWriter writer = new PrintWriter(String.format("%slresult%d.csv", outputDir, communityId))) {
+            writer.println(header);
+            Iterator<Entry<Node, HashMap<Node, Float>>> i1 = results.entrySet().iterator();
+            while (i1.hasNext()) {
+                Entry<Node, HashMap<Node, Float>> e1 = i1.next();
+                Node n1 = e1.getKey();
+                Iterator<Entry<Node, Float>> i2 = e1.getValue().entrySet().iterator();
+                while (i2.hasNext()) {
+                    Entry<Node, Float> e2 = i2.next();
+                    Node n2 = e2.getKey();
+                    float l = e2.getValue();
+                    writer.println(String.format("%s,%s,%f", n1.getName(), n2.getName(), l));
+                }
             }
         }
     }
