@@ -29,7 +29,7 @@ public class CommunityFinder {
 
 //        SpaceSeparatedConvertor convertor = new SpaceSeparatedConvertor();
         QmpsuConvertor convertor = new QmpsuConvertor();
-        Graph g = convertor.convertToGraph(DEFAULT_FILE_DIR + FILE_NAME, EXCLUDE_DISCONNECTED_NODES);
+        Graph g = convertor.convertToGraph(DEFAULT_FILE_DIR + FILE_NAME, true, EXCLUDE_DISCONNECTED_NODES);
         print(String.format("Graph %s, Nodes = %d, Edges = %d", FILE_NAME, g.size(), g.getNumOfEdges() / 2));
         print(String.format("INIT_COLOR_ASSIGNMENT = %f", INIT_COLOR_ASSIGNMENT));
 

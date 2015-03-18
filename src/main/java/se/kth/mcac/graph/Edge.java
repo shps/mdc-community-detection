@@ -7,8 +7,10 @@ package se.kth.mcac.graph;
 public class Edge {
 
     private final long id; // Unique id;
-    private final String srcId; // source node
-    private final String dstId; // destination node;
+    private String srcId; // source node
+    private String dstId; // destination node;
+    private String srcUName;
+    private String dstUName;
     private float bw; // link bandwidth
     private float latency; // link latency
     private float reliability; // reliability rate
@@ -52,14 +54,14 @@ public class Edge {
      * @return the src
      */
     public String getSrc() {
-        return srcId;
+        return getSrcId();
     }
 
     /**
      * @return the dst
      */
     public String getDst() {
-        return dstId;
+        return getDstId();
     }
 
     /**
@@ -109,5 +111,61 @@ public class Edge {
      */
     public void setWeight(float weight) {
         this.weight = weight;
+    }
+
+    /**
+     * @return the srcUName
+     */
+    public String getSrcUName() {
+        return srcUName;
+    }
+
+    /**
+     * @param srcUName the srcUName to set
+     */
+    public void setSrcUName(String srcUName) {
+        this.srcUName = srcUName;
+    }
+
+    /**
+     * @return the dstUName
+     */
+    public String getDstUName() {
+        return dstUName;
+    }
+
+    /**
+     * @param dstUName the dstUName to set
+     */
+    public void setDstUName(String dstUName) {
+        this.dstUName = dstUName;
+    }
+
+    /**
+     * @return the srcId
+     */
+    public String getSrcId() {
+        return srcId;
+    }
+
+    /**
+     * @param srcId the srcId to set
+     */
+    public void setSrcId(String srcId) {
+        this.srcId = srcId;
+    }
+
+    /**
+     * @return the dstId
+     */
+    public String getDstId() {
+        return dstId;
+    }
+
+    /**
+     * @param dstId the dstId to set
+     */
+    public void setDstId(String dstId) {
+        this.dstId = dstId;
     }
 }

@@ -24,6 +24,7 @@ public class QmpsuConvertor {
     public static final String BW = "bw";
     public static final String RTT = "rtt";
     public static final String NODE_NAME = "id";
+    public static final String UNAME = "name";
     public Random random = new Random();
 
     private final List<Node> noLocationNodes = new LinkedList<>();
@@ -33,20 +34,29 @@ public class QmpsuConvertor {
     private static final float DEFAULT_BW = 20f;
     private static final float DEFAULT_RTT = 2f;
 
+    private int nFullInfo;
+    private int nMissingInfo;
+
     /**
      * Converts QMPSU's JSON file to Graph object.
      *
      * @param jsonFile
+     * @param applyCorrections
      * @param excludeDisconnectedNodes
      * @return
      * @throws IOException
      */
-    public Graph convertToGraph(String jsonFile, boolean excludeDisconnectedNodes) throws IOException {
+    public Graph convertToGraph(String jsonFile, boolean applyCorrections, boolean excludeDisconnectedNodes) throws IOException {
+        nFullInfo = 0;
+        nMissingInfo = 0;
         Graph graph = new Graph();
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.readValue(new File(jsonFile), JsonNode.class);
         extractGraph(rootNode, graph);
-        generateMissingData(graph);
+        if (applyCorrections) {
+            generateMissingData(graph);
+        }
+        setEdgesUNames(graph);
 
         if (excludeDisconnectedNodes) {
             excludeDisconnectedNodes(graph);
@@ -57,16 +67,21 @@ public class QmpsuConvertor {
             }
         }
 
+        System.out.println(String.format("Edges with full info = %d, Edges with missing info = %d", nFullInfo, nMissingInfo));
+        System.out.println(String.format("Graph size = %d", graph.size()));
+
         return graph;
     }
 
     private void extractGraph(JsonNode rootNode, Graph graph) {
         int n = rootNode.get(0).get("adjacencies").size();
         int id = 0; // assigns an unique id starting from 0 to the nodes.
-        for (int i = 2; i <= n; i++) {
+        for (int i = 1; i <= n; i++) {
             JsonNode jNode = rootNode.get(i);
             String name = jNode.get(NODE_NAME).textValue();
             Node node = new Node(id, name);
+            String uName = jNode.get(UNAME).textValue();
+            node.setUName(uName);
             graph.addNode(node);
             setNode(jNode, node);
             id++;
@@ -85,6 +100,8 @@ public class QmpsuConvertor {
             noLocationNodes.add(node);
         }
 
+        boolean fullInfo = true;
+
         JsonNode adjs = jNode.get(ADJACENCIES);
         if (adjs == null) {
             System.err.println(String.format("Node %s has no connections.", node.getName()));
@@ -92,13 +109,16 @@ public class QmpsuConvertor {
         }
 
         for (int j = 0; j < adjs.size(); j++) {
-            Edge edge = new Edge(random.nextLong(), node.getName(), adjs.get(j).get(NODE_TO).textValue());
+            String dst = adjs.get(j).get(NODE_TO).textValue();
+            Edge edge = new Edge(random.nextLong(), node.getName(), dst);
+            edge.setSrcUName(node.getUName());
             node.addEdge(edge);
             if (adjs.get(j).get(DATA).get(BW) != null) {
                 edge.setBw(adjs.get(j).get(DATA).get(BW).floatValue());
             } else {
                 System.out.println(String.format("Edge %s->%s does not contain BW information.", edge.getSrc(), edge.getDst()));
                 noBwEdges.add(edge);
+                fullInfo = false;
             }
 
             if (adjs.get(j).get(DATA).get(RTT) != null) {
@@ -106,6 +126,13 @@ public class QmpsuConvertor {
             } else {
                 System.out.println(String.format("Edge %s->%s does not contain RTT information.", edge.getSrc(), edge.getDst()));
                 noRttEdges.add(edge);
+                fullInfo = false;
+            }
+
+            if (fullInfo) {
+                nFullInfo++;
+            } else {
+                nMissingInfo++;
             }
             // TODO: Reliability
         }
@@ -154,6 +181,47 @@ public class QmpsuConvertor {
             if (n.getEdges().isEmpty()) {
                 System.out.println(String.format("Node %s is a disconnected node and is removed!", n.getName()));
                 graph.remove(n.getName());
+            }
+        }
+    }
+
+    /**
+     * @return the nFullInfo
+     */
+    public int getnFullInfo() {
+        return nFullInfo;
+    }
+
+    /**
+     * @param nFullInfo the nFullInfo to set
+     */
+    public void setnFullInfo(int nFullInfo) {
+        this.nFullInfo = nFullInfo;
+    }
+
+    /**
+     * @return the nMissingInfo
+     */
+    public int getnMissingInfo() {
+        return nMissingInfo;
+    }
+
+    /**
+     * @param nMissingInfo the nMissingInfo to set
+     */
+    public void setnMissingInfo(int nMissingInfo) {
+        this.nMissingInfo = nMissingInfo;
+    }
+
+    private void setEdgesUNames(Graph graph) {
+        for (Node src : graph.getNodes()) {
+            for (Edge e : src.getEdges()) {
+                e.setSrcUName(src.getUName());
+                try {
+                    e.setDstUName(graph.getNode(e.getDst()).getUName());
+                } catch (NullPointerException ex) {
+                    System.out.println(ex.getMessage());
+                }
             }
         }
     }

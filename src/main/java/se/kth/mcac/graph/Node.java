@@ -11,7 +11,8 @@ import java.util.Objects;
  */
 public class Node {
 
-    private final String name; // Unique node name in the network.
+    private String name; // Unique node name in the network.
+    private String uName;
     private int id; // Internal unique id assigned to each node starting from 0, to simplify the semantic and overhead of algorithms.
     private int communityId; // Community name
     private final List<Edge> edges;
@@ -42,6 +43,12 @@ public class Node {
     public void addEdge(Edge e) {
         edges.add(e);
     }
+    
+    public boolean removeEdge(Edge e)
+    {
+        return edges.remove(e);
+    }
+    
 
     /**
      *
@@ -196,6 +203,27 @@ public class Node {
      */
     public void setId(int id) {
         this.id = id;
+    }
+
+    /**
+     * @return the uName
+     */
+    public String getUName() {
+        return uName;
+    }
+
+    /**
+     * @param uName the uName to set
+     */
+    public void setUName(String uName) {
+        this.uName = uName;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     public class Resource {
