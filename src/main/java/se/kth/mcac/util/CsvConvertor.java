@@ -24,7 +24,7 @@ public class CsvConvertor {
     public static void convertAndWrite(Graph g, String outputDir) throws FileNotFoundException {
         try (PrintWriter nodeWriter = new PrintWriter(outputDir + "nodes.csv");
                 PrintWriter edgeWriter = new PrintWriter(outputDir + "edges.csv")) {
-            nodeWriter.println("Id, UName,Lat,Lon,community");
+            nodeWriter.println("Id,UName,Lat,Lon,community");
             edgeWriter.println("Source,Target,SrcUName, DstUName,Type,Id,BW,RTT,Weight");
             Node[] nodes = g.getNodes();
 
@@ -49,11 +49,14 @@ public class CsvConvertor {
      */
     public static void writeBootVmOutput(int communityId, HashMap<Node, Float> results, String outputDir, String header) throws FileNotFoundException {
         try (PrintWriter writer = new PrintWriter(String.format("%sbvresult%d.csv", outputDir, communityId))) {
-            writer.println(header);
+            if (!header.isEmpty()) {
+                writer.println(header);
+            }
             Iterator<Entry<Node, Float>> iterator = results.entrySet().iterator();
             while (iterator.hasNext()) {
                 Entry<Node, Float> entry = iterator.next();
-                writer.println(String.format("%s,%f", entry.getKey().getName(), entry.getValue()));
+//                writer.println(String.format("%s,%f", entry.getKey().getName(), entry.getValue()));
+                writer.println(String.format("%f", entry.getValue()));
             }
         }
     }
@@ -65,15 +68,19 @@ public class CsvConvertor {
      * @param results
      * @param outputDir
      * @param header
+     * @param fileName
      * @throws java.io.FileNotFoundException
      */
-    public static void writeLatencyOutput(
+    public static void writePairOutput(
             int communityId,
             HashMap<Node, HashMap<Node, Float>> results,
             String outputDir,
-            String header) throws FileNotFoundException {
-        try (PrintWriter writer = new PrintWriter(String.format("%slresult%d.csv", outputDir, communityId))) {
-            writer.println(header);
+            String header,
+            String fileName) throws FileNotFoundException {
+        try (PrintWriter writer = new PrintWriter(String.format("%s%s%d.csv", outputDir, fileName, communityId))) {
+            if (!header.isEmpty()) {
+                writer.println(header);
+            }
             Iterator<Entry<Node, HashMap<Node, Float>>> i1 = results.entrySet().iterator();
             while (i1.hasNext()) {
                 Entry<Node, HashMap<Node, Float>> e1 = i1.next();
@@ -83,7 +90,8 @@ public class CsvConvertor {
                     Entry<Node, Float> e2 = i2.next();
                     Node n2 = e2.getKey();
                     float l = e2.getValue();
-                    writer.println(String.format("%s,%s,%f", n1.getName(), n2.getName(), l));
+//                    writer.println(String.format("%s,%s,%f", n1.getName(), n2.getName(), l));
+                    writer.println(String.format("%f", l));
                 }
             }
         }
@@ -142,9 +150,9 @@ public class CsvConvertor {
             while ((line = reader.readLine()) != null) {
                 String[] connections = line.split(COMMA);
                 Node n = new Node(i, connections[0]);
-                n.setLat(Double.parseDouble(connections[1]));
-                n.setLon(Double.parseDouble(connections[2]));
-                n.setCommunityId(Integer.valueOf(connections[3]));
+                n.setLat(Double.parseDouble(connections[2]));
+                n.setLon(Double.parseDouble(connections[3]));
+                n.setCommunityId(Integer.valueOf(connections[4]));
                 g.addNode(n);
                 i++;
             }
@@ -156,10 +164,10 @@ public class CsvConvertor {
                 String[] connections = line.split(COMMA);
                 Node n = g.getNode(connections[0]);
                 n.addEdge(
-                        new Edge(Long.valueOf(connections[3]),
+                        new Edge(Long.valueOf(connections[5]),
                                 connections[0], connections[1],
-                                Float.parseFloat(connections[4]),
-                                Float.parseFloat(connections[5]),
+                                Float.parseFloat(connections[6]),
+                                Float.parseFloat(connections[7]),
                                 0));
             }
         }

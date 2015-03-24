@@ -6,12 +6,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import static se.kth.mcac.NewClass.DEFAULT_FILE_DIR;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.graph.Node;
 import se.kth.mcac.util.CsvConvertor;
-import static se.kth.mcac.util.CsvConvertor.DIRECTED;
 import se.kth.mcac.util.QmpsuConvertor;
 
 /**
@@ -24,7 +22,7 @@ public class NetworkChangeTracker {
     static final String FILE_NAME = "graph-16march15-1000.json";
     static final boolean EXCLUDE_DISCONNECTED_NODES = true;
     static final String DELIMITER = ":";
-    static final int FILE_RANGE = 26;
+    static final int FILE_RANGE = 24;
     static final boolean DROP_BAD_EDGES = true;
 
     public static void main(String[] args) throws IOException {

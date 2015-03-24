@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Random;
+import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.graph.Node;
 import se.kth.mcac.simulation.communitycloud.OpenStackUtil;
@@ -21,18 +22,26 @@ import se.kth.mcac.util.CsvConvertor;
  */
 public class Simulation {
 
-    static final String FILE_DIRECTORY = "/home/ganymedian/Desktop/sant-upc/";
-    static final String NODE_FILE = "nsinglecommunity.csv";
-    static final String EDGE_FILE = "esinglecommunity.csv";
-//    static final String NODE_FILE = "125nodes.csv";
-//    static final String EDGE_FILE = "125edges.csv";
+    static final String FILE_DIRECTORY = "/home/ganymedian/Desktop/sant-upc/samples/experiments/cd/";
+    static final String OUTPUT_DIR = "/home/ganymedian/Desktop/sant-upc/samples/experiments/simulation/";
+    static final String NODE_FILE = "0mgroupnodes.csv";
+    static final String EDGE_FILE = "0mgroupedges.csv";
+//    static final String NODE_FILE = "avg-graph.csvnodes.csv";
+//    static final String EDGE_FILE = "avg-graph.csvedges.csv";
+    static final int PREFIX = -2;
     static final int MIN_COMMUNITY_SIZE = 3;
     static final int MAX_COMMUNITY_SIZE = 100;
+    static double sumLatency = 0;
+    static int totalLatencies = 0;
+    static final HashMap<Node, HashMap<Node, Float>> totalLResults = new HashMap<>();
+    static final HashMap<Node, HashMap<Node, Float>> pairBwResults = new HashMap<>();
+    static final HashMap<Node, Float> totalBwResults = new HashMap<>();
+    static int IMAGE_SIZE = 2688; // Cloudy (current version, 23 March 2015) is 336MB * 8 = 2688Mb.
 
     public static void main(String[] args) throws IOException {
         CsvConvertor convertor = new CsvConvertor();
         Graph g = convertor.convertAndRead(FILE_DIRECTORY + NODE_FILE, FILE_DIRECTORY + EDGE_FILE);
-        print(String.format("Graph %s, %s, Nodes = %d, Edges = %d", NODE_FILE, EDGE_FILE, g.size(), g.getNumOfEdges() / 2));
+        print(String.format("Graph %s, %s, Nodes = %d, Edges = %d", NODE_FILE, EDGE_FILE, g.size(), g.getNumOfEdges()));
 
         HashMap<Integer, HashMap<String, Node>> communities = g.getCommunities();
         Iterator<Entry<Integer, HashMap<String, Node>>> iterator = communities.entrySet().iterator();
@@ -43,8 +52,42 @@ public class Simulation {
         HashMap<Integer, HashMap<Node, Float>> results = new HashMap<>();
         while (iterator.hasNext()) {
             Entry<Integer, HashMap<String, Node>> entry = iterator.next();
-            results.put(entry.getKey(), execute(entry.getKey(), entry.getValue(), routingMap, true));
+//            if (entry.getKey() == 11 || entry.getKey() == 42 || entry.getKey() == 40 || entry.getKey() == 21) {
+            results.put(entry.getKey(), execute(entry.getKey(), entry.getValue(), routingMap, false));
+//            } else {
+//                Iterator<Entry<String, Node>> it = entry.getValue().entrySet().iterator();
+//                System.err.println(String.format("****** Community %d", entry.getKey()));
+//                while (it.hasNext()) {
+//                    Node n = it.next().getValue();
+//                    System.err.println(String.format("Connections for node %s", n.getName()));
+//                    for (Edge e : n.getEdges()) {
+//                        System.err.println(String.format("%s -> %s\tBW = %f, L = %f", e.getSrc(), e.getDst(), e.getBw(), e.getLatency()));
+//                        Edge dst = g.getNode(e.getDst()).getEdge(e.getSrc());
+//                        System.err.println(String.format("%s -> %s\tBW = %f, L = %f", dst.getSrc(), dst.getDst(), dst.getBw(), dst.getLatency()));
+//                    }
+//                }
+//            }
         }
+
+        CsvConvertor.writePairOutput(
+                PREFIX,
+                totalLResults,
+                OUTPUT_DIR,
+                "",
+                "lresult");
+        CsvConvertor.writePairOutput(
+                PREFIX,
+                pairBwResults,
+                OUTPUT_DIR,
+                "",
+                "pairbvresult");
+        CsvConvertor.writeBootVmOutput(
+                PREFIX,
+                totalBwResults,
+                OUTPUT_DIR,
+                "");
+
+        print(String.format("Average Latency for %d comparisons %f", totalLatencies, sumLatency / (double) totalLatencies));
 
         // TODO: print results
     }
@@ -87,7 +130,8 @@ public class Simulation {
 
         for (Node n : computes) {
             float t = bootVM(controller, dbmq, n, routingMap);
-            print(String.format("Total latency: %f", t));
+            print(String.format("Total BootVM Time: %f", t));
+            totalBwResults.put(n, t);
             results.put(n, t);
         }
 
@@ -95,29 +139,48 @@ public class Simulation {
             CsvConvertor.writeBootVmOutput(
                     communityId,
                     results,
-                    FILE_DIRECTORY,
+                    OUTPUT_DIR,
                     String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()));
         }
 
-        print(String.format("**** Inter-compute nodes latency for community %d, Size: %d ****", communityId, nodes.size()));
+        print(String.format("**** Intra-DC nodes latency for community %d, Size: %d ****", communityId, nodes.size()));
         HashMap<Node, HashMap<Node, Float>> lResults = new HashMap<>();
-        for (Node n1 : computes) {
+        for (Node n1 : nodes.values()) {
             lResults.put(n1, new HashMap<Node, Float>());
-            for (Node n2 : computes) {
+            totalLResults.put(n1, new HashMap<Node, Float>());
+            for (Node n2 : nodes.values()) {
                 if (!n1.equals(n2)) {
                     float l = computeLatency(routingMap.get(n1).get(n2));
+                    totalLatencies++;
+                    sumLatency += l;
                     print(String.format("%s\t%s\t%f", n1.getName(), n2.getName(), l));
                     lResults.get(n1).put(n2, l);
+                    totalLResults.get(n1).put(n2, l);
                 }
             }
         }
 
         if (printResult) {
-            CsvConvertor.writeLatencyOutput(
+            CsvConvertor.writePairOutput(
                     communityId,
                     lResults,
-                    FILE_DIRECTORY,
-                    String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()));
+                    OUTPUT_DIR,
+                    String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()), "lresult");
+        }
+
+        print(String.format("**** Intra-DC nodes File Transfer for community %d, Size: %d ****", communityId, nodes.size()));
+        for (Node n1 : nodes.values()) {
+            pairBwResults.put(n1, new HashMap<Node, Float>());
+            for (Node n2 : nodes.values()) {
+                if (!n1.equals(n2)) {
+                    float l = computeLatency(routingMap.get(n1).get(n2));
+                    Edge minBwEdge = findMinBw(routingMap.get(n1).get(n2));
+                    float minBw = minBwEdge.getBw();
+                    float bvTime = (IMAGE_SIZE / minBw) + (l / 1000);
+                    print(String.format("%s\t%s\t%f", n1.getName(), n2.getName(), bvTime));
+                    pairBwResults.get(n1).put(n2, bvTime);
+                }
+            }
         }
 
         return results;
@@ -139,7 +202,7 @@ public class Simulation {
         float computeControllerLatency = computeLatency(routingMap.get(compute).get(controller));
         float controllerComputeLatency = computeLatency(routingMap.get(controller).get(compute));
 
-        float t = OpenStackUtil.computeBootVMLatency(
+        float l = OpenStackUtil.computeBootVMLatency(
                 controllerDbmqLatency,
                 controllerComputeLatency,
                 dbmqControllerLatency,
@@ -147,7 +210,11 @@ public class Simulation {
                 computeDbmqLatency,
                 computeControllerLatency);
 
-        return t;
+//        Edge minBwEdge = findMinBw(routingMap.get(controller).get(compute));
+//        float minBw = minBwEdge.getBw();
+//        float bvTime = ((IMAGE_SIZE / minBw) + controllerComputeLatency) + (l / 1000);
+
+        return l;
     }
 
     /**
@@ -176,5 +243,21 @@ public class Simulation {
 
     private static void mergeAllcommunities(Graph g) {
         //TODO make the graph to have one big community. Filter out all the disconnected nodes. Disconnected nodes can be a single node community.
+    }
+
+    private static Edge findMinBw(TreeNode head) {
+        float minBw = Float.MAX_VALUE;
+        Edge minBwEdge = null;
+        while (!head.getBranches().isEmpty()) {
+            Edge e = head.getEdges().get(0);
+            if (e.getBw() < minBw) {
+                minBw = e.getBw();
+                minBwEdge = e;
+            }
+
+            head = head.getBranches().get(0);
+        }
+
+        return minBwEdge;
     }
 }

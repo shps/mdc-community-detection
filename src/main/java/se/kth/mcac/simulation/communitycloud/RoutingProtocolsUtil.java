@@ -114,7 +114,7 @@ public class RoutingProtocolsUtil {
             List<Edge> es = v.getEdges();
             for (Edge e : es) {
                 w = g.getNode(e.getDst());
-                weight = e.getLatency(); // only considering latency
+                weight = 1/e.getWeight();
                 float weightThrough = distance.get(v) + weight;
                 List<Edge> ps = null;
                 if (distance.get(w) >= weightThrough) {
