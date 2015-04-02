@@ -19,17 +19,18 @@ import se.kth.mcac.util.QmpsuConvertor;
 public class CommunityFinder {
 
     static final String DEFAULT_FILE_DIR = "/home/ganymedian/Desktop/sant-upc/samples/";
-    static final String OUTPUT_DIR = "/home/ganymedian/Desktop/sant-upc/samples/experiments/cd/";
+    static final String OUTPUT_DIR = "/home/ganymedian/Desktop/sant-upc/samples/experiments/cd/diffusion/";
     static final String FILE_NAME = "graph-53ad2481.json";
     static final boolean MODULARITY_FOR_WEIGHTED_DIRECTED = true;
     static final boolean EXCLUDE_DISCONNECTED_NODES = true;
     static final float INIT_COLOR_ASSIGNMENT = 1f;
     static final int START_ITERATION = 1;
-    static final int END_ITERATION = START_ITERATION + 200;
+    static final int END_ITERATION = START_ITERATION + 300;
     static final int INCREMENT_PER_ITERATION = 1;
     static final boolean APPLY_MGROUP = false;
     static final int APPLY_MGROUP_AFTER = 0;
     static final float THRESHOLD = 20;
+    static boolean ONLY_MGROUP = false;
 
     public static void main(String[] args) throws IOException, Exception {
 
@@ -49,19 +50,22 @@ public class CommunityFinder {
         int maxNumCom = 0;
         int beforeMgroupNumCom = 0;
 
-        for (int i = 0; i < g.getNodes().length; i++) {
-            g.getNodes()[i].setCommunityId(i);
+        if (ONLY_MGROUP) {
+            for (int i = 0; i < g.getNodes().length; i++) {
+                g.getNodes()[i].setCommunityId(i);
+            }
+
+            MGroup cd2 = new MGroup();
+            cd2.findCommunities(g);
+            double m = ModularityComputer.compute(g, MODULARITY_FOR_WEIGHTED_DIRECTED);
+            print(String.format("After MGroup Modularity = %f", m));
+            int newNumCom2 = g.getNumCommunities();
+            print(String.format("Number of Communities %d", newNumCom2));
+            CsvConvertor.convertAndWrite(g, String.format("%s%dmgroup", OUTPUT_DIR, 0));
+
+            System.exit(0);
         }
-
-        MGroup cd2 = new MGroup();
-        cd2.findCommunities(g);
-        double m = ModularityComputer.compute(g, MODULARITY_FOR_WEIGHTED_DIRECTED);
-        print(String.format("After MGroup Modularity = %f", m));
-        int newNumCom2 = g.getNumCommunities();
-        print(String.format("Number of Communities %d", newNumCom2));
-        CsvConvertor.convertAndWrite(g, String.format("%s%dmgroup", OUTPUT_DIR, 0));
-
-        System.exit(0);
+        
         DiffusionBasedCommunityDetector dbcd = new DiffusionBasedCommunityDetector(INIT_COLOR_ASSIGNMENT);
         for (int round = START_ITERATION; round < END_ITERATION; round = round + INCREMENT_PER_ITERATION) {
 

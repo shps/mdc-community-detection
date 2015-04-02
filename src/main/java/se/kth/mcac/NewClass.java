@@ -1,6 +1,9 @@
 package se.kth.mcac;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.util.CsvConvertor;
 import se.kth.mcac.util.QmpsuConvertor;
@@ -16,8 +19,11 @@ public class NewClass {
     static final boolean EXCLUDE_DISCONNECTED_NODES = true;
 
     public static void main(String[] args) throws IOException {
-        QmpsuConvertor convertor = new QmpsuConvertor();
-        Graph g = convertor.convertToGraph(DEFAULT_FILE_DIR + FILE_NAME, false, EXCLUDE_DISCONNECTED_NODES);
-        CsvConvertor.convertAndWrite(g, DEFAULT_FILE_DIR + FILE_NAME);   
+//        QmpsuConvertor convertor = new QmpsuConvertor();
+//        Graph g = convertor.convertToGraph(DEFAULT_FILE_DIR + FILE_NAME, false, EXCLUDE_DISCONNECTED_NODES);
+//        CsvConvertor.convertAndWrite(g, DEFAULT_FILE_DIR + FILE_NAME);
+        
+        
+        System.out.println(Math.pow(500, (float)1/3));
     }
 }

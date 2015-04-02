@@ -15,6 +15,7 @@ public class Edge {
     private float latency; // link latency
     private float reliability; // reliability rate
     private float weight = 0; // calculated weight of the edge.
+    private float bcp = 0; // betweenness centrality portion
 
     // connection type
     public Edge(long id, String src, String dst, float bw, float latency, float reliability) {
@@ -32,8 +33,23 @@ public class Edge {
 
     public void computeWeight() {
 //        this.weight = bw + 1/latency;
-//        this.weight = bw/latency;
-        this.weight = bw/latency;
+        this.weight = bw / latency;
+    }
+
+    public float getWeightBc() {
+        if (bcp == 0) {
+            return getWeight();
+        }
+
+        return bw / (latency * bcp);
+    }
+
+    public float getSharedBw() {
+        if (bcp == 0) {
+            return bw;
+        }
+
+        return bw / bcp;
     }
 
     public float getWeight() {
@@ -168,5 +184,19 @@ public class Edge {
      */
     public void setDstId(String dstId) {
         this.dstId = dstId;
+    }
+
+    /**
+     * @return the bcp
+     */
+    public float getBcp() {
+        return bcp;
+    }
+
+    /**
+     * @param bcp the bcp to set
+     */
+    public void setBcp(float bcp) {
+        this.bcp = bcp;
     }
 }

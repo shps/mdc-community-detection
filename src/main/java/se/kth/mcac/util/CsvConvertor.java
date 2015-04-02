@@ -44,11 +44,12 @@ public class CsvConvertor {
      * @param communityId
      * @param results
      * @param outputDir
+     * @param fileName
      * @param header
      * @throws java.io.FileNotFoundException
      */
-    public static void writeBootVmOutput(int communityId, HashMap<Node, Float> results, String outputDir, String header) throws FileNotFoundException {
-        try (PrintWriter writer = new PrintWriter(String.format("%sbvresult%d.csv", outputDir, communityId))) {
+    public static void writeBootVmOutput(int communityId, HashMap<Node, Float> results, String outputDir, String fileName, String header) throws FileNotFoundException {
+        try (PrintWriter writer = new PrintWriter(String.format("%s%s%d.csv", outputDir, fileName, communityId))) {
             if (!header.isEmpty()) {
                 writer.println(header);
             }
@@ -94,6 +95,78 @@ public class CsvConvertor {
                     writer.println(String.format("%f", l));
                 }
             }
+        }
+    }
+
+    public static void writeRandomBootVMTime(
+            int index,
+            float[][] results,
+            String outputDir,
+            String header,
+            String fileName) throws FileNotFoundException {
+        try (PrintWriter writer = new PrintWriter(String.format("%s%s%d.csv", outputDir, fileName, index))) {
+            if (!header.isEmpty()) {
+                writer.println(header);
+            }
+
+            int c = results[0].length;
+            for (int i = 0; i < c; i++) {
+                for (int j = 0; j < results.length; j++) {
+                    writer.print(String.format("%f,", results[j][i]));
+                }
+                writer.println();
+            }
+        }
+    }
+    
+    public static void writeAverageRandomBootVMTime(
+            int index,
+            float[][] results,
+            String outputDir,
+            String header,
+            String fileName) throws FileNotFoundException {
+        try (PrintWriter writer = new PrintWriter(String.format("%s%s%d.csv", outputDir, fileName, index))) {
+            if (!header.isEmpty()) {
+                writer.println(header);
+            }
+
+            int c = results.length;
+            for (int i = 0; i < c; i++) {
+                for (int j = 0; j < results[i].length; j++) {
+                    writer.print(String.format("%f,", results[i][j]));
+                }
+                writer.println();
+            }
+        }
+    }
+
+    public static void writeBetweennessOutPut(
+            int communityId,
+            Graph g,
+            String outputDir,
+            String header,
+            String fileName) throws FileNotFoundException {
+        try (PrintWriter writer = new PrintWriter(String.format("%s%s%d.csv", outputDir, fileName, communityId))) {
+            if (!header.isEmpty()) {
+                writer.println(header);
+            }
+
+            for (Node n : g.getNodes()) {
+                writer.println(String.format("%s,%f", n.getName(), n.getBc()));
+            }
+//            Iterator<Entry<Node, HashMap<Node, Float>>> i1 = results.entrySet().iterator();
+//            while (i1.hasNext()) {
+//                Entry<Node, HashMap<Node, Float>> e1 = i1.next();
+//                Node n1 = e1.getKey();
+//                Iterator<Entry<Node, Float>> i2 = e1.getValue().entrySet().iterator();
+//                while (i2.hasNext()) {
+//                    Entry<Node, Float> e2 = i2.next();
+//                    Node n2 = e2.getKey();
+//                    float l = e2.getValue();
+////                    writer.println(String.format("%s,%s,%f", n1.getName(), n2.getName(), l));
+//                    writer.println(String.format("%f", l));
+//                }
+//            }
         }
     }
 

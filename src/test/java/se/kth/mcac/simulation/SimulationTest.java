@@ -51,11 +51,13 @@ public class SimulationTest {
         n3.addEdge(e32);
         Graph g = new Graph();
         g.addNodes(n1, n2, n3);
-        HashMap<Node, HashMap<Node, TreeNode>> routingMap = new HashMap<>();
+        HashMap<Node, HashMap<Node, TreeNode>> routingMap = Simulation.routingMap;
         for (Node n : g.getNodes()) {
             routingMap.put(n, RoutingProtocolsUtil.findRoutings(n, g, RoutingProtocolsUtil.RoutingProtocols.SHORTEST_PATH_BASED_ON_LATENCY));
         }
-        HashMap<Node, Float> results = Simulation.execute(1, g.getCommunities().get(1), routingMap, false);
+        
+        Simulation.APPLY_RANDOM_ROUTING = false;
+        HashMap<Node, Float> results = Simulation.execute(1, g.getCommunities().get(1), false);
         assert results.size() == 1;
         float t = OpenStackUtil.computeBootVMLatency(
                 e21.getLatency(),

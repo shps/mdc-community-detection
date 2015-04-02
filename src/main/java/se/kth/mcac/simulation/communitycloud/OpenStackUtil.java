@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import se.kth.mcac.graph.Edge;
+import se.kth.mcac.graph.Graph;
 import se.kth.mcac.graph.Node;
 import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil.TreeNode;
 
@@ -19,6 +20,15 @@ import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil.TreeNode;
  * @author ganymedian
  */
 public class OpenStackUtil {
+
+    public static void resetBcs(Graph g) {
+        for (Node n : g.getNodes()) {
+            n.setBc(0);
+            for (Edge e : n.getEdges()) {
+                e.setBcp(0);
+            }
+        }
+    }
 
     public enum SelectionStrategy {
 
@@ -34,18 +44,19 @@ public class OpenStackUtil {
      * @param strategy
      * @param candidates
      * @param routingMap
+     * @param g
      * @param excludes
      * @return
      */
     public static String selectController(
             SelectionStrategy strategy,
             HashMap<String, Node> candidates,
-            HashMap<Node, HashMap<Node, TreeNode>> routingMap,
+            HashMap<Node, HashMap<Node, TreeNode>> routingMap, Graph g,
             Node... excludes) {
         String n = null;
         switch (strategy) {
             case BETWEENNESS_CENTRALITY:
-                n = selectControllerByBetweenness(candidates, routingMap, excludes);
+                n = selectControllerByBetweenness(candidates, routingMap, g, excludes);
         }
         return n;
     }
@@ -54,12 +65,12 @@ public class OpenStackUtil {
             SelectionStrategy strategy,
             Node controller,
             HashMap<String, Node> candidates,
-            HashMap<Node, HashMap<Node, TreeNode>> routingMap,
+            HashMap<Node, HashMap<Node, TreeNode>> routingMap, Graph g,
             Node... excludes) {
         String n = null;
         switch (strategy) {
             case BETWEENNESS_CENTRALITY:
-                n = selectDbmqByBetweennessCentrality(controller, candidates, routingMap, excludes);
+                n = selectDbmqByBetweennessCentrality(controller, candidates, routingMap, g, excludes);
         }
         return n;
 
@@ -68,9 +79,9 @@ public class OpenStackUtil {
     private static String selectDbmqByBetweennessCentrality(
             Node controller,
             HashMap<String, Node> candidates,
-            HashMap<Node, HashMap<Node, TreeNode>> routingMap,
+            HashMap<Node, HashMap<Node, TreeNode>> routingMap, Graph g,
             Node[] excludes) {
-        HashMap<String, Float> scores = computeBetweennessCentralityScores(candidates, routingMap);
+        HashMap<String, Float> scores = computeBetweennessCentralityScores(candidates, routingMap, g, false);
 
         List<Edge> edges = controller.getEdges();
         String maxNode = null;
@@ -92,9 +103,9 @@ public class OpenStackUtil {
     //TODO: This is not a complete version of betweenness. It does not cosider all the paths. i.e. In case of two similar shortest paths it only considers one path not both.
     private static String selectControllerByBetweenness(
             HashMap<String, Node> candidates,
-            HashMap<Node, HashMap<Node, TreeNode>> routingMap,
+            HashMap<Node, HashMap<Node, TreeNode>> routingMap, Graph g,
             Node[] excludes) {
-        HashMap<String, Float> scores = computeBetweennessCentralityScores(candidates, routingMap);
+        HashMap<String, Float> scores = computeBetweennessCentralityScores(candidates, routingMap, g, false);
 
         String maxNode = null;
         float maxScore = Float.NEGATIVE_INFINITY;
@@ -124,14 +135,14 @@ public class OpenStackUtil {
 
     public static HashMap<String, Float> computeBetweennessCentralityScores(
             HashMap<String, Node> candidates,
-            HashMap<Node, HashMap<Node, TreeNode>> routingMap) {
+            HashMap<Node, HashMap<Node, TreeNode>> routingMap, Graph g, boolean computeOnNode) {
         HashMap<String, Float> bsScore = new HashMap<>();
         for (Node src : candidates.values()) {
             checkScoreEntry(src.getName(), bsScore);
             for (Node dst : candidates.values()) {
                 if (!src.equals(dst)) {
                     HashMap<String, Integer> scores = new HashMap<>();
-                    int totalPaths = updateScore(routingMap.get(src).get(dst), src, dst, scores, candidates);
+                    int totalPaths = updateScore(routingMap.get(src).get(dst), src, dst, scores, candidates, g, computeOnNode);
                     updateBsScores(bsScore, scores, totalPaths);
                 }
             }
@@ -139,13 +150,18 @@ public class OpenStackUtil {
 
         return bsScore;
     }
+    
+    public static void updateBcsOnNodes(Node src, Node dst, TreeNode head, Graph g)
+    {
+        updateScore(head, src, dst, null, null, g, true);
+    }
 
     private static void updateBsScores(HashMap<String, Float> bsScore, HashMap<String, Integer> scores, int totalPaths) {
         Iterator<Entry<String, Integer>> iterator = scores.entrySet().iterator();
         while (iterator.hasNext()) {
             Entry<String, Integer> entry = iterator.next();
             checkScoreEntry(entry.getKey(), bsScore);
-            bsScore.put(entry.getKey(), bsScore.get(entry.getKey()) + ((float)entry.getValue() / totalPaths));
+            bsScore.put(entry.getKey(), bsScore.get(entry.getKey()) + ((float) entry.getValue() / totalPaths));
         }
     }
 
@@ -154,7 +170,7 @@ public class OpenStackUtil {
             Node src,
             Node dst,
             HashMap<String, Integer> scores,
-            HashMap<String, Node> candidates) {
+            HashMap<String, Node> candidates, Graph g, boolean computeOnNode) {
         Node node = head.getN();
         String name = node.getName();
 
@@ -164,18 +180,31 @@ public class OpenStackUtil {
 
         int paths = 0;
         if (head.getBranches() != null) {
+            if (computeOnNode) {
+                float p = 1 / (float) head.getEdges().size();
+                for (Edge e : head.getEdges()) {
+                    Edge link = g.getNode(e.getSrc()).getEdge(e.getDst());
+                    link.setBcp(link.getBcp() + p);
+                }
+            }
             for (TreeNode next : head.getBranches()) {
-                paths += updateScore(next, src, dst, scores, candidates);
+                paths += updateScore(next, src, dst, scores, candidates, g, computeOnNode);
             }
         }
-        
-        if (!node.equals(src) && !node.equals(dst) && candidates.containsKey(name)) {
-            if (!scores.containsKey(name)) {
-                scores.put(name, 0);
+
+        if (!node.equals(src) && !node.equals(dst)) {
+            if (computeOnNode) {
+                Node n = g.getNode(node.getName());
+                n.setBc(n.getBc() + paths);
             }
-            scores.put(name, scores.get(name) + paths);
+            if (candidates!= null && candidates.containsKey(name)) {
+                if (!scores.containsKey(name)) {
+                    scores.put(name, 0);
+                }
+                scores.put(name, scores.get(name) + paths);
+            }
         }
-        
+
         return paths;
     }
 

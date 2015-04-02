@@ -19,6 +19,7 @@ public class Node {
     private double lat, lon;
     private Resource resource;
     private float reliability; // reliability rate
+    private float bc = 0; // betweenness centrality
 
     public Node(int id, String name, double lat, double lon, float reliability, Resource resource) {
         this(id, name);
@@ -43,12 +44,10 @@ public class Node {
     public void addEdge(Edge e) {
         edges.add(e);
     }
-    
-    public boolean removeEdge(Edge e)
-    {
+
+    public boolean removeEdge(Edge e) {
         return edges.remove(e);
     }
-    
 
     /**
      *
@@ -224,6 +223,20 @@ public class Node {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * @return the bc
+     */
+    public float getBc() {
+        return bc;
+    }
+
+    /**
+     * @param bc the bc to set
+     */
+    public void setBc(float bc) {
+        this.bc = bc;
     }
 
     public class Resource {

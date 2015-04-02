@@ -5,9 +5,12 @@
  */
 package se.kth.mcac.simulation.communitycloud;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.graph.Node;
@@ -36,6 +39,10 @@ public class RoutingProtocolsUtil {
         }
 
         return null;
+    }
+
+    public static HashMap<Node, List<Edge>> findRoutingsSimple(Node targetNode, Graph g) {
+        return findShortestPathsSimple(targetNode, g);
     }
 
     public static class TreeNode {
@@ -91,6 +98,54 @@ public class RoutingProtocolsUtil {
         return paths;
     }
 
+    /**
+     * Finds the shortest paths between the target node and the rest of the
+     * community nodes.
+     *
+     * @param targetNode
+     * @param communityNodes
+     * @return a map of ID of the nodes and the edges of the shortest path to
+     * the target node.
+     */
+    private static HashMap<Node, List<Edge>> findShortestPathsSimple(Node targetNode, Graph g) {
+        HashMap<Node, List<Edge>> paths = new HashMap<>(); // all the shortest paths
+        HashSet<Node> others = new HashSet<>();
+        Collections.addAll(others, g.getNodes());
+        Queue<Node> toVisit = new LinkedList<>();
+        HashSet<Node> visited = new HashSet<>();
+        HashMap<Node, Edge> parents = new HashMap(); // To trace the path.
+
+        // Find paths
+        toVisit.add(targetNode);
+        while (!toVisit.isEmpty() && !others.isEmpty()) {
+            Node n = toVisit.poll();
+            if (!visited.contains(n)) {
+                visited.add(n);
+                for (Edge e : n.getEdges()) {
+                    Node dst = g.getNode(e.getDst());
+                    if (!others.contains(dst)) {
+                        continue;
+                    }
+                    others.remove(dst);
+                    parents.put(dst, e);
+                    if (!visited.contains(dst)) {
+                        toVisit.add(dst);
+                    }
+                }
+            }
+        }
+
+        for (Node n : g.getNodes()) {
+            final List<Edge> path = new LinkedList<>();
+            if (!n.equals(targetNode)) {
+                backtrackSimple(targetNode, n, parents, path, g);
+            }
+            paths.put(n, path);
+        }
+
+        return paths;
+    }
+
     private static HashMap<Node, List<Edge>> dijkstra(Node targetNode, Graph g) {
         HashMap<Node, Boolean> inTree = new HashMap<>(g.size());
         HashMap<Node, Float> distance = new HashMap<>(g.size());
@@ -114,7 +169,7 @@ public class RoutingProtocolsUtil {
             List<Edge> es = v.getEdges();
             for (Edge e : es) {
                 w = g.getNode(e.getDst());
-                weight = 1/e.getWeight();
+                weight = 1 / e.getWeight();
                 float weightThrough = distance.get(v) + weight;
                 List<Edge> ps = null;
                 if (distance.get(w) >= weightThrough) {
@@ -183,4 +238,20 @@ public class RoutingProtocolsUtil {
         }
 
     }
+
+    private static void backtrackSimple(Node target, Node n, HashMap<Node, Edge> parents, List<Edge> path, Graph g) {
+        if (parents.containsKey(n)) {
+            Edge e = parents.get(n);
+            Node src = g.getNode(e.getSrc());
+            if (src.equals(target)) {
+                path.add(e);
+                return;
+            }
+            backtrackSimple(target, src, parents, path, g);
+            path.add(e);
+        } else if (!n.equals(target)) {
+            System.err.println(String.format("Can't find a path from the node %s to target %s", n.getName(), target.getName()));
+        }
+    }
+
 }
