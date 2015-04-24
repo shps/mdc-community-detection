@@ -243,13 +243,13 @@ public class OpenStackUtil {
      * @param computeControllerLatency
      * @return
      */
-    public static float computeBootVMLatency(
-            float controllerDbmqLatency,
-            float controllerComputeLatency,
-            float dbmqControllerLatency,
-            float dbmqComputeLatency,
-            float computeDbmqLatency,
-            float computeControllerLatency) {
+    public static double computeBootVMLatency(
+            double controllerDbmqLatency,
+            double controllerComputeLatency,
+            double dbmqControllerLatency,
+            double dbmqComputeLatency,
+            double computeDbmqLatency,
+            double computeControllerLatency) {
         //14 controller-dbmq communications
         // 3 compute-dbmq communications
         // 7 compute-controller communications

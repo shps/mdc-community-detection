@@ -36,6 +36,17 @@ public class Node {
         edges = new LinkedList<>();
     }
 
+    public Node(Node n) {
+        this.id = n.getId();
+        this.lat = n.getLat();
+        this.lon = n.getLon();
+        this.name = n.getName();
+        this.uName = n.getUName();
+        this.communityId = n.getCommunityId();
+        edges = new LinkedList<>();
+        this.edges.addAll(n.getEdges());
+    }
+
     /**
      * Adds a new edge to the edge lists.
      *

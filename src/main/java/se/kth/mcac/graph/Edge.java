@@ -11,10 +11,10 @@ public class Edge {
     private String dstId; // destination node;
     private String srcUName;
     private String dstUName;
-    private float bw; // link bandwidth
-    private float latency; // link latency
+    private double bw; // link bandwidth
+    private double latency; // link latency
     private float reliability; // reliability rate
-    private float weight = 0; // calculated weight of the edge.
+    private double weight = 0; // calculated weight of the edge.
     private float bcp = 0; // betweenness centrality portion
 
     // connection type
@@ -33,18 +33,23 @@ public class Edge {
 
     public void computeWeight() {
 //        this.weight = bw + 1/latency;
-        this.weight = bw / latency;
+//        this.weight = Math.pow(bw,1.5) / latency;
+//        this.weight = Math.pow(bw+1,4) / Math.pow(latency+1,0.5);
+//        this.weight = bw / latency
+//        this.weight = bw;
+//        this.weight = 1.0 / latency;
+        this.weight = Math.pow(bw, 0.05) * (1 / Math.pow(latency, 0.05));
+//        this.weight = bw / Math.pow(latency + 1, 0.75);
     }
 
-    public float getWeightBc() {
-        if (bcp == 0) {
-            return getWeight();
-        }
-
-        return bw / (latency * bcp);
-    }
-
-    public float getSharedBw() {
+//    public double getWeightBc() {
+//        if (bcp == 0) {
+//            return getWeight();
+//        }
+//
+//        return bw / (latency * bcp);
+//    }
+    public double getSharedBw() {
         if (bcp == 0) {
             return bw;
         }
@@ -52,7 +57,7 @@ public class Edge {
         return bw / bcp;
     }
 
-    public float getWeight() {
+    public double getWeight() {
         if (weight == 0) {
             this.computeWeight();
         }
@@ -84,28 +89,28 @@ public class Edge {
     /**
      * @return the bw
      */
-    public float getBw() {
+    public double getBw() {
         return bw;
     }
 
     /**
      * @param bw the bw to set
      */
-    public void setBw(float bw) {
+    public void setBw(double bw) {
         this.bw = bw;
     }
 
     /**
      * @return the latency
      */
-    public float getLatency() {
+    public double getLatency() {
         return latency;
     }
 
     /**
      * @param latency the latency to set
      */
-    public void setLatency(float latency) {
+    public void setLatency(double latency) {
         this.latency = latency;
     }
 

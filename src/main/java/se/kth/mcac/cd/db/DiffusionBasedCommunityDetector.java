@@ -1,6 +1,10 @@
 package se.kth.mcac.cd.db;
 
 import java.security.SecureRandom;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import se.kth.mcac.cd.CommunityDetector;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
@@ -10,7 +14,7 @@ import se.kth.mcac.graph.Node;
  *
  * @author hooman
  */
-public class DiffusionBasedCommunityDetector implements CommunityDetector {
+public class DiffusionBasedCommunityDetector {
 
     public static final float CONVERGENCE_THRESHOLD = 0;
     public static final short DEFAULT_ITERATION = 1;
@@ -29,18 +33,18 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
         this.p = initialColorAssignment;
     }
 
-    @Override
-    public void findCommunities(Graph graph) {
-        findCommunities(graph, DEFAULT_ITERATION);
+    public void findCommunities(Graph graph, boolean resolveSingles) {
+        findCommunities(graph, DEFAULT_ITERATION, resolveSingles);
     }
 
     /**
      *
      * @param graph
      * @param iteration
+     * @param resolveSingles
      */
-    public void findCommunities(Graph graph, int iteration) {
-        float[][] nodeColors = init(graph);
+    public void findCommunities(Graph graph, int iteration, boolean resolveSingles) {
+        double[][] nodeColors = init(graph);
 
         Node[] nodes = graph.getNodes(); // Notice that the orther of nodes in this array has nothing to do with their node ID.
         for (int i = 0; i < iteration; i++) {
@@ -48,59 +52,109 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
         }
 
         assignCommunities(graph, nodeColors);
+
+        if (resolveSingles) {
+            resolveSingleNodes(graph);
+        }
     }
 
-    private float[][] init(Graph graph) {
-        SecureRandom r = new SecureRandom();
-        int c = (int) (graph.size() * p);
-        float[][] nodeColors = new float[graph.size()][c];
-        if (p == 1f) {
-            for (int i = 0; i < graph.size(); i++) {
-                nodeColors[i][i] = 1f;
+    private void resolveSingleNodes(Graph graph) {
+        HashMap<String, Node> singleNodes = new HashMap<>();
+        for (Node n : graph.getNodes()) {
+            if (isSingle(n, graph)) {
+                singleNodes.put(n.getName(), n);
             }
-        } else {
-            for (int i = 0; i < c; i++) {
-                float currentColor = 1;
-                while (currentColor == 1) {
-                    int nodeId = r.nextInt(graph.size());
-                    if ((currentColor = nodeColors[nodeId][i]) == 0) {
-                        nodeColors[nodeId][i] = 1f;
+        }
+
+        while (!singleNodes.isEmpty()) {
+            List<Node> singles = new LinkedList<>(singleNodes.values());
+            for (Node s : singles) {
+                // Check for non-single neighbor
+                for (Edge e : s.getEdges()) {
+                    if (!singleNodes.containsKey(e.getDst())) {
+                        s.setCommunityId(graph.getNode(e.getDst()).getCommunityId());
+                        singleNodes.remove(s.getName());
+                        break;
                     }
                 }
             }
         }
+        
+//        while (!singleNodes.isEmpty()) {
+//            List<Node> singles = new LinkedList<>(singleNodes.values());
+//            for (Node s : singles) {
+//                // Check for non-single neighbor
+//                Edge maxEdge = null;
+//                double maxWeight = Double.MIN_VALUE;
+//                for (Edge e : s.getEdges()) {
+//                    if (!singleNodes.containsKey(e.getDst())) {
+//                        double sum = e.getWeight() + graph.getNode(e.getDst()).getEdge(s.getName()).getWeight();
+//                        if (sum > maxWeight) {
+//                            maxEdge = e;
+//                        }
+//                    }
+//                }
+//
+//                if (maxEdge != null) {
+//                    s.setCommunityId(graph.getNode(maxEdge.getDst()).getCommunityId());
+//                    singleNodes.remove(s.getName());
+//                }
+//            }
+//        }
+    }
+
+    private double[][] init(Graph graph) {
+//        SecureRandom r = new SecureRandom();
+//        int c = (int) (graph.size() * p);
+        int c = graph.size();
+        double[][] nodeColors = new double[graph.size()][c];
+//        if (p == 1f) {
+        for (int i = 0; i < graph.size(); i++) {
+            nodeColors[i][i] = 1f;
+        }
+//        } else {
+//            for (int i = 0; i < c; i++) {
+//                float currentColor = 1;
+//                while (currentColor == 1) {
+//                    int nodeId = r.nextInt(graph.size());
+//                    if ((currentColor = nodeColors[nodeId][i]) == 0) {
+//                        nodeColors[nodeId][i] = 1f;
+//                    }
+//                }
+//            }
+//        }
         return nodeColors;
     }
 
-    private float[][] diffuseColors(Node[] nodes, float[][] nodeColors, Graph graph) {
+    private double[][] diffuseColors(Node[] nodes, double[][] nodeColors, Graph graph) {
         int c = nodeColors[0].length;
-        float[][] newColors = new float[graph.size()][c];
+        double[][] newColors = new double[graph.size()][c];
         for (Node n : nodes) {
-            float wSum = 0;
+            double wSum = 0;
             for (Edge e : n.getEdges()) {
                 wSum += e.getWeight();
             }
             for (Edge e : n.getEdges()) {
                 int dstId = graph.getNode(e.getDst()).getId();
-                float portion = e.getWeight() / wSum;
+                double portion = e.getWeight() / wSum;
                 for (int i = 0; i < c; i++) {
                     newColors[dstId][i] += portion * nodeColors[n.getId()][i];
                 }
             }
 
-            if (n.getEdges().size() <= 0) // It has atleast one neighbor to send the colors.
-            {
-                newColors[n.getId()] = nodeColors[n.getId()].clone();
-            }
+//            if (n.getEdges().size() <= 0) // It has atleast one neighbor to send the colors.
+//            {
+//                newColors[n.getId()] = nodeColors[n.getId()].clone();
+//            }
         }
 
         return newColors;
     }
 
-    private void assignCommunities(Graph graph, final float[][] nodeColors) {
+    private void assignCommunities(Graph graph, final double[][] nodeColors) {
         int c = nodeColors[0].length;
         for (Node n : graph.getNodes()) {
-            float[] colorSum = nodeColors[n.getId()].clone();
+            double[] colorSum = nodeColors[n.getId()].clone();
             for (Edge e : n.getEdges()) {
                 int dstId = graph.getNode(e.getDst()).getId();
                 for (int i = 0; i < c; i++) {
@@ -112,12 +166,11 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
         }
     }
 
-    private int findMaxColor(float[] colors) {
+    private int findMaxColor(double[] colors) {
         int maxColor = -1;
-        float maxValue = Float.MIN_VALUE;
+        double maxValue = Float.MIN_VALUE;
         for (int i = 0; i < colors.length; i++) {
-            if (colors[i] > maxValue || (colors[i] == maxValue && colors[i] < maxColor)) {
-
+            if (colors[i] > maxValue || (colors[i] == maxValue && i < maxColor)) {
                 maxColor = i;
                 maxValue = colors[i];
 
@@ -139,6 +192,17 @@ public class DiffusionBasedCommunityDetector implements CommunityDetector {
      */
     public void setInitialColorAssignmentProbability(float p) {
         this.p = p;
+    }
+
+    private boolean isSingle(Node n, Graph g) {
+        for (Edge e : n.getEdges()) {
+            Node dst = g.getNode(e.getDst());
+            if (n.getCommunityId() == dst.getCommunityId()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     class Color {

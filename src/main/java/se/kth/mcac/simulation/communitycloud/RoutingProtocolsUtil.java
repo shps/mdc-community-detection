@@ -148,20 +148,20 @@ public class RoutingProtocolsUtil {
 
     private static HashMap<Node, List<Edge>> dijkstra(Node targetNode, Graph g) {
         HashMap<Node, Boolean> inTree = new HashMap<>(g.size());
-        HashMap<Node, Float> distance = new HashMap<>(g.size());
+        HashMap<Node, Double> distance = new HashMap<>(g.size());
         HashMap<Node, List<Edge>> parents = new HashMap<>();
         Node v; // current node
         Node w; // next candidate
-        float weight;
-        float dist; // best current destination from start
+        double weight;
+        double dist; // best current destination from start
 
         for (Node n : g.getNodes()) {
             inTree.put(n, false);
-            distance.put(n, Float.MAX_VALUE);
+            distance.put(n, Double.MAX_VALUE);
             parents.put(n, null);
         }
 
-        distance.put(targetNode, 0f);
+        distance.put(targetNode, 0.0);
         v = targetNode;
 
         while (!inTree.get(v)) {
@@ -170,7 +170,7 @@ public class RoutingProtocolsUtil {
             for (Edge e : es) {
                 w = g.getNode(e.getDst());
                 weight = 1 / e.getWeight();
-                float weightThrough = distance.get(v) + weight;
+                double weightThrough = distance.get(v) + weight;
                 List<Edge> ps = null;
                 if (distance.get(w) >= weightThrough) {
                     if (distance.get(w) == weightThrough) {
@@ -184,9 +184,9 @@ public class RoutingProtocolsUtil {
                 }
             }
 
-            dist = Float.MAX_VALUE;
+            dist = Double.MAX_VALUE;
             for (Node n : g.getNodes()) {
-                if (!inTree.get(n) && distance.get(n) != Float.MAX_VALUE && distance.get(n) <= dist) { // considering multiple short paths
+                if (!inTree.get(n) && distance.get(n) != Double.MAX_VALUE && distance.get(n) <= dist) { // considering multiple short paths
                     dist = distance.get(n);
                     v = n;
                 }

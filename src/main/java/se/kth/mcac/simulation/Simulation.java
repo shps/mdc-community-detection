@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -19,6 +20,7 @@ import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil;
 import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil.RoutingProtocols;
 import se.kth.mcac.simulation.communitycloud.RoutingProtocolsUtil.TreeNode;
 import se.kth.mcac.util.CsvConvertor;
+import se.kth.mcac.util.ModularityComputer;
 
 /**
  *
@@ -26,52 +28,119 @@ import se.kth.mcac.util.CsvConvertor;
  */
 public class Simulation {
 
-    static final String FILE_DIRECTORY = "/home/ganymedian/Desktop/sant-upc/samples/experiments/cd/";
-    static final String OUTPUT_DIR = "/home/ganymedian/Desktop/sant-upc/samples/experiments/simulation/simbv/";
-    static final String SIM_OUTPUT_DIR = "/home/ganymedian/Desktop/sant-upc/samples/experiments/simulation/simbv/";
-//    static final String NODE_FILE = "geograph-nodes.csv";
-//    static final String EDGE_FILE = "geograph-edges.csv";
-//    static final String NODE_FILE = "0mgroupnodes.csv";
-//    static final String EDGE_FILE = "0mgroupedges.csv";
-    static final String NODE_FILE = "avg-graph.csvnodes.csv";
-    static final String EDGE_FILE = "avg-graph.csvedges.csv";
-    static final int PREFIX = -1;
+    static final String EXPERIMENT_NAME = "cd";
+    static boolean GEPHI_INPUT = false;
+    static final String FILE_DIRECTORY = "/home/ganymedian/Desktop/sant-upc/samples/experiments/simulation/final/samples/" + EXPERIMENT_NAME + "/";
+    static final String OUTPUT_DIR = "/home/ganymedian/Desktop/sant-upc/samples/experiments/simulation/final/results/" + EXPERIMENT_NAME + "/";
+    static final String SIM_OUTPUT_DIR = "/home/ganymedian/Desktop/sant-upc/samples/experiments/simulation/final/results/" + EXPERIMENT_NAME + "/";
+    static int MAX_ROUND = 9;
+    static int MIN_ROUND = 2;
+    static final String EDGE_FILE = "edges.csv";
     static String SIM_FILE_NAME = "sbvs";
-    static final int MIN_COMMUNITY_SIZE = 3;
-    static final int MAX_COMMUNITY_SIZE = 100;
+    static final int MIN_COMMUNITY_SIZE = 1;
+    static final int MAX_COMMUNITY_SIZE = Integer.MAX_VALUE;
     static double sumLatency = 0;
     static int totalLatencies = 0;
-    static final HashMap<Node, HashMap<Node, Float>> totalLResults = new HashMap<>();
-    static final HashMap<Node, HashMap<Node, Float>> pairBwResults = new HashMap<>();
-    static final HashMap<Node, HashMap<Node, Float>> pairSharedBwResults = new HashMap<>();
-    static final HashMap<Node, Float> totalBwResults = new HashMap<>();
-    static final HashMap<Node, Float> totalCachedBwResults = new HashMap<>();
-    static final HashMap<Node, Float> totalSharedBwResults = new HashMap<>();
+    static HashMap<Node, HashMap<Node, Float>> pairBwResults;
+    static HashMap<Node, HashMap<Node, Float>> pairSharedBwResults;
+    static HashMap<Node, Float> totalBwResults;
+    static HashMap<Node, Float> totalCachedBwResults;
+    static HashMap<Node, Double> totalSharedBwResults;
+
+    static List[] latencies;
+    static List[] minBws;
+    static List[] minSharedBws;
+    static List[] inLatencies;
+    static List[] outLatencies;
+    static List[] inBw;
+    static List[] outBw;
+    static List<Double>[] communitySizes;
+    static double[][] bcs;
     static int IMAGE_SIZE = 112; // Cloudy (current version, 23 March 2015) is 336MB * 8 = 2688Mb. // Cirros 14MB
     static boolean APPLY_RANDOM_ROUTING = false;
     static float SMART_ROUTING_THRESHOLD = 0;
-    static boolean SIMULATE = true;
-    static int ROUNDS = 20;
-//    static String SIM_FILE_NAME = "sbvs";
+    static boolean SIMULATE = false;
+    static int ROUNDS = 1000;
 
-    static final HashMap<Node, HashMap<Node, TreeNode>> routingMap = new HashMap<>();
-    static final HashMap<Node, HashMap<Node, List<Edge>>> simpleRoutingMap = new HashMap<>();
+    static HashMap<Node, HashMap<Node, TreeNode>> routingMap = new HashMap<>();
+    static HashMap<Node, HashMap<Node, List<Edge>>> simpleRoutingMap = new HashMap<>();
+    static List<Double> modularities = new LinkedList<>();
 
     static SecureRandom r = new SecureRandom();
     static Graph g;
 
+    private static void init() {
+        pairBwResults = new HashMap<>();
+        pairSharedBwResults = new HashMap<>();
+        totalBwResults = new HashMap<>();
+        totalCachedBwResults = new HashMap<>();
+        totalSharedBwResults = new HashMap<>();
+
+        routingMap = new HashMap<>();
+        simpleRoutingMap = new HashMap<>();
+        sumLatency = 0;
+        totalLatencies = 0;
+    }
+
     public static void main(String[] args) throws IOException {
-        if (SIMULATE) {
-            simulateScenarios();
-        } else {
-            calculateScenarios();
+        if (EXPERIMENT_NAME.equalsIgnoreCase("m")) {
+            GEPHI_INPUT = true;
+        }
+        latencies = new List[MAX_ROUND - 1];
+        minBws = new List[MAX_ROUND - 1];
+        minSharedBws = new List[MAX_ROUND - 1];
+        inLatencies = new List[MAX_ROUND - 1];
+        outLatencies = new List[MAX_ROUND - 1];
+        inBw = new List[MAX_ROUND - 1];
+        outBw = new List[MAX_ROUND - 1];
+        communitySizes = new List[MAX_ROUND - 1];
+        bcs = new double[11][52];
+        for (int i = MIN_ROUND; i <= MAX_ROUND; i++) {
+            String nodeFile = String.format("%s%d.csv", FILE_DIRECTORY, i);
+            CsvConvertor convertor = new CsvConvertor();
+            if (GEPHI_INPUT) {
+                g = convertor.convertAndReadGephi(nodeFile, FILE_DIRECTORY + EDGE_FILE);
+            } else {
+                g = convertor.convertAndRead(nodeFile, FILE_DIRECTORY + EDGE_FILE);
+            }
+            init();
+            print(String.format("Graph %s, %s, Nodes = %d, Edges = %d", nodeFile, EDGE_FILE, g.size(), g.getNumOfEdges()));
+
+            if (SIMULATE) {
+                simulateScenarios(i);
+            } else {
+                latencies[i - MIN_ROUND] = new LinkedList();
+                minBws[i - MIN_ROUND] = new LinkedList();
+                minSharedBws[i - MIN_ROUND] = new LinkedList();
+                inLatencies[i - MIN_ROUND] = new LinkedList();
+                outLatencies[i - MIN_ROUND] = new LinkedList();
+                inBw[i - MIN_ROUND] = new LinkedList();
+                outBw[i - MIN_ROUND] = new LinkedList();
+                communitySizes[i - MIN_ROUND] = new LinkedList();
+                calculateScenarios(i);
+            }
+        }
+
+        if (!SIMULATE) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = MIN_ROUND; i <= MAX_ROUND; i++) {
+                sb.append(i).append(",");
+            }
+            CsvConvertor.writeModularities(modularities, OUTPUT_DIR, "", "modularities", MIN_ROUND);
+            CsvConvertor.writeTotalLatencies(latencies, OUTPUT_DIR, "total-latencies", sb.toString());
+            CsvConvertor.writeTotalLatencies(minBws, OUTPUT_DIR, "total-bws", sb.toString());
+            CsvConvertor.writeTotalLatencies(minSharedBws, OUTPUT_DIR, "total-shared-bws", sb.toString());
+            CsvConvertor.writeTotalLatencies(inLatencies, OUTPUT_DIR, "inLatencies", sb.toString());
+            CsvConvertor.writeTotalLatencies(outLatencies, OUTPUT_DIR, "outLatencies", sb.toString());
+            CsvConvertor.writeTotalLatencies(inBw, OUTPUT_DIR, "inBw", sb.toString());
+            CsvConvertor.writeTotalLatencies(outBw, OUTPUT_DIR, "outBw", sb.toString());
+            CsvConvertor.writeTotalLatencies(communitySizes, OUTPUT_DIR, "community-sizes", sb.toString());
+            CsvConvertor.writeSizes(inLatencies, outLatencies, OUTPUT_DIR, "link-sizes", sb.toString(), MIN_ROUND);
+            CsvConvertor.writeTotalResults(bcs, OUTPUT_DIR, "", "total-bcs");
         }
     }
 
-    private static void simulateScenarios() throws IOException {
-        CsvConvertor convertor = new CsvConvertor();
-        g = convertor.convertAndRead(FILE_DIRECTORY + NODE_FILE, FILE_DIRECTORY + EDGE_FILE);
-        print(String.format("Graph %s, %s, Nodes = %d, Edges = %d", NODE_FILE, EDGE_FILE, g.size(), g.getNumOfEdges()));
+    private static void simulateScenarios(int round) throws IOException {
 
         HashMap<Integer, HashMap<String, Node>> communities = g.getCommunities();
         Iterator<Entry<Integer, HashMap<String, Node>>> iterator = communities.entrySet().iterator();
@@ -117,22 +186,22 @@ public class Simulation {
             Node controller = comController.get(n.getCommunityId());
             OpenStackUtil.updateBcsOnNodes(controller, n, routingMap.get(controller).get(n), g);
         }
-        
-        CsvConvertor.writeBetweennessOutPut(PREFIX, g, OUTPUT_DIR, "", "bc");
+
+        CsvConvertor.writeBetweennessOutPut(round, g, OUTPUT_DIR, "", "bbc");
 
         for (Node n : computes) {
             Node controller = comController.get(n.getCommunityId());
             Node dbmq = comDbmq.get(n.getCommunityId());
-            float t = bootVM(controller, dbmq, n, true, false);
+            double t = bootVM(controller, dbmq, n, true, false);
             print(String.format("Total BootVM Time: %f", t));
             totalSharedBwResults.put(n, t);
         }
 
         // Run simulation for different number of parallel boot VMs.
         int rounds = ROUNDS; // Number of rounds
-        float[][] total = new float[nComputes][rounds];
+        double[][] total = new double[nComputes][rounds];
         for (int c = 1; c <= nComputes; c++) {
-            float[][] results = new float[rounds][c];
+            double[][] results = new double[rounds][c];
             for (int k = 0; k < rounds; k++) {
                 ArrayList<Integer> list = new ArrayList<>(computes.length);
                 for (int j = 0; j < computes.length; j++) {
@@ -152,7 +221,7 @@ public class Simulation {
                 }
 
                 // Compute BootVM time for the selected compute nodes.
-                float[] bootTimes = new float[c];
+                double[] bootTimes = new double[c];
                 for (int j = 0; j < targets.length; j++) {
                     Node compute = targets[j];
                     Node controller = comController.get(compute.getCommunityId());
@@ -163,7 +232,7 @@ public class Simulation {
                 results[k] = bootTimes;
             }
 
-            CsvConvertor.writeRandomBootVMTime(c, results, SIM_OUTPUT_DIR, "", SIM_FILE_NAME);
+//            CsvConvertor.writeRandomBootVMTime(c, results, SIM_OUTPUT_DIR, "", SIM_FILE_NAME);
             for (int j = 0; j < rounds; j++) {
                 float sum = 0;
                 for (int k = 0; k < c; k++) {
@@ -174,19 +243,29 @@ public class Simulation {
         }
 
         CsvConvertor.writeBootVmOutput(
-                PREFIX,
+                round,
                 totalSharedBwResults,
                 OUTPUT_DIR,
-                "pbv",
+                "simpbv",
                 "");
 
-        CsvConvertor.writeAverageRandomBootVMTime(PREFIX, total, SIM_OUTPUT_DIR, "", SIM_FILE_NAME);
+        CsvConvertor.writeTotalResults(total, SIM_OUTPUT_DIR, "", String.format("%s%d", SIM_FILE_NAME, round));
     }
 
-    public static void calculateScenarios() throws FileNotFoundException, IOException {
-        CsvConvertor convertor = new CsvConvertor();
-        g = convertor.convertAndRead(FILE_DIRECTORY + NODE_FILE, FILE_DIRECTORY + EDGE_FILE);
-        print(String.format("Graph %s, %s, Nodes = %d, Edges = %d", NODE_FILE, EDGE_FILE, g.size(), g.getNumOfEdges()));
+    public static void calculateScenarios(int round) throws FileNotFoundException, IOException {
+
+        modularities.add(ModularityComputer.compute(g, true));
+        for (Node n : g.getNodes()) {
+            for (Edge e : n.getEdges()) {
+                if (n.getCommunityId() == g.getNode(e.getDst()).getCommunityId()) {
+                    inLatencies[round - MIN_ROUND].add(e.getLatency());
+                    inBw[round - MIN_ROUND].add(e.getBw());
+                } else {
+                    outLatencies[round - MIN_ROUND].add(e.getLatency());
+                    outBw[round - MIN_ROUND].add(e.getBw());
+                }
+            }
+        }
 
         HashMap<Integer, HashMap<String, Node>> communities = g.getCommunities();
         Iterator<Entry<Integer, HashMap<String, Node>>> iterator = communities.entrySet().iterator();
@@ -204,181 +283,171 @@ public class Simulation {
             OpenStackUtil.computeBetweennessCentralityScores(entry.getValue(), routingMap, g, true);
         }
 
-        HashMap<Integer, HashMap<Node, Float>> results = new HashMap<>();
-        HashMap<String, Float> bcNodes;
-        while (iterator.hasNext()) {
-            Entry<Integer, HashMap<String, Node>> entry = iterator.next();
-            results.put(entry.getKey(), execute(entry.getKey(), entry.getValue(), false));
+        int i = 0;
+        for (Node n : g.getNodes()) {
+            bcs[round - MIN_ROUND][i] = n.getBc();
+            i++;
         }
 
-        CsvConvertor.writeBetweennessOutPut(PREFIX, g, OUTPUT_DIR, "", "bc");
+        while (iterator.hasNext()) {
+            Entry<Integer, HashMap<String, Node>> entry = iterator.next();
+            communitySizes[round - MIN_ROUND].add((double) entry.getValue().size());
+            execute(entry.getKey(), entry.getValue(), false, round);
+        }
 
-        CsvConvertor.writePairOutput(
-                PREFIX,
-                totalLResults,
-                OUTPUT_DIR,
-                "",
-                "lresult");
-        CsvConvertor.writePairOutput(
-                PREFIX,
-                pairBwResults,
-                OUTPUT_DIR,
-                "",
-                "ft");
-        CsvConvertor.writePairOutput(
-                PREFIX,
-                pairSharedBwResults,
-                OUTPUT_DIR,
-                "",
-                "pft");
-        CsvConvertor.writeBootVmOutput(
-                PREFIX,
-                totalSharedBwResults,
-                OUTPUT_DIR,
-                "pbv",
-                "");
-
-        CsvConvertor.writeBootVmOutput(
-                PREFIX,
-                totalBwResults,
-                OUTPUT_DIR,
-                "bv",
-                "");
-        CsvConvertor.writeBootVmOutput(
-                PREFIX,
-                totalCachedBwResults,
-                OUTPUT_DIR,
-                "cbv",
-                "");
-
+//        CsvConvertor.writeBetweennessOutPut(round, g, OUTPUT_DIR, "", "bc");
+//        CsvConvertor.writePairOutput(
+//                round,
+//                totalLResults,
+//                OUTPUT_DIR,
+//                "",
+//                "lresult");
+//        CsvConvertor.writePairOutput(
+//                round,
+//                pairBwResults,
+//                OUTPUT_DIR,
+//                "",
+//                "ft");
+//        CsvConvertor.writePairOutput(
+//                round,
+//                pairSharedBwResults,
+//                OUTPUT_DIR,
+//                "",
+//                "pft");
+//        CsvConvertor.writeBootVmOutput(
+//                round,
+//                totalSharedBwResults,
+//                OUTPUT_DIR,
+//                "pbv",
+//                "");
+//
+//        CsvConvertor.writeBootVmOutput(
+//                round,
+//                totalBwResults,
+//                OUTPUT_DIR,
+//                "bv",
+//                "");
+//        CsvConvertor.writeBootVmOutput(
+//                round,
+//                totalCachedBwResults,
+//                OUTPUT_DIR,
+//                "cbv",
+//                "");
         print(String.format("Average Latency for %d comparisons %f", totalLatencies, sumLatency / (double) totalLatencies));
 
         // TODO: print results
     }
 
-    public static HashMap<Node, Float> execute(
+    public static void execute(
             int communityId,
             HashMap<String, Node> nodes,
-            boolean printResult) throws FileNotFoundException {
-        HashMap<Node, Float> results = new HashMap<>();
-        if (nodes.size() < MIN_COMMUNITY_SIZE || nodes.size() > MAX_COMMUNITY_SIZE) {
+            boolean printResult, int round) throws FileNotFoundException {
+        if (nodes.size() <= MIN_COMMUNITY_SIZE || nodes.size() > MAX_COMMUNITY_SIZE) {
             print(String.format("ID: %d, Inappropriate community size %d", communityId, nodes.size()));
-            return results;
+            return;
         }
 
-        print(String.format("**** Boot VM execution for community %d, Size: %d ****", communityId, nodes.size()));
-
-        // assign the Openstack rolls to the nodes.
-        Node controller = nodes.get(OpenStackUtil.selectController(
-                SelectionStrategy.BETWEENNESS_CENTRALITY,
-                nodes,
-                routingMap, g)); // Openstack Controler
-        Node dbmq = nodes.get(OpenStackUtil.selectDbmq(
-                SelectionStrategy.BETWEENNESS_CENTRALITY,
-                controller,
-                nodes,
-                routingMap, g,
-                controller)); // database and message queue
-        print(String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()));
-        Node[] computes = new Node[nodes.size() - 2];
-        Iterator<Entry<String, Node>> iterator = nodes.entrySet().iterator();
-        int i = 0;
-        while (iterator.hasNext()) {
-            Node n = iterator.next().getValue();
-            if (!n.equals(controller) && !n.equals(dbmq)) {
-                computes[i] = n;
-                i++;
-            }
-        }
-
-        for (Node n : computes) {
-            float t = bootVM(controller, dbmq, n, false, false);
-            print(String.format("Total BootVM Time: %f", t));
-            totalBwResults.put(n, t);
-            results.put(n, t);
-        }
-
-        for (Node n : computes) {
-            float t = bootVM(controller, dbmq, n, false, true);
-            totalCachedBwResults.put(n, t);
-            results.put(n, t);
-        }
-
-        for (Node n : computes) {
-            float t = bootVM(controller, dbmq, n, true, false);
-            print(String.format("Total BootVM Time: %f", t));
-            totalSharedBwResults.put(n, t);
-        }
-
-        if (printResult) {
-            CsvConvertor.writeBootVmOutput(
-                    communityId,
-                    results,
-                    OUTPUT_DIR,
-                    "bv",
-                    String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()));
-        }
-
+//        print(String.format("**** Boot VM execution for community %d, Size: %d ****", communityId, nodes.size()));
+//
+//        // assign the Openstack rolls to the nodes.
+//        Node controller = nodes.get(OpenStackUtil.selectController(
+//                SelectionStrategy.BETWEENNESS_CENTRALITY,
+//                nodes,
+//                routingMap, g)); // Openstack Controler
+//        Node dbmq = nodes.get(OpenStackUtil.selectDbmq(
+//                SelectionStrategy.BETWEENNESS_CENTRALITY,
+//                controller,
+//                nodes,
+//                routingMap, g,
+//                controller)); // database and message queue
+//        print(String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()));
+//        Node[] computes = new Node[nodes.size() - 2];
+//        Iterator<Entry<String, Node>> iterator = nodes.entrySet().iterator();
+//        int i = 0;
+//        while (iterator.hasNext()) {
+//            Node n = iterator.next().getValue();
+//            if (!n.equals(controller) && !n.equals(dbmq)) {
+//                computes[i] = n;
+//                i++;
+//            }
+//        }
+//
+//        for (Node n : computes) {
+//            float t = bootVM(controller, dbmq, n, false, false);
+//            print(String.format("Total BootVM Time: %f", t));
+//            totalBwResults.put(n, t);
+//        }
+//
+//        for (Node n : computes) {
+//            float t = bootVM(controller, dbmq, n, false, true);
+//            totalCachedBwResults.put(n, t);
+//        }
+//
+//        for (Node n : computes) {
+//            float t = bootVM(controller, dbmq, n, true, false);
+//            print(String.format("Total BootVM Time: %f", t));
+//            totalSharedBwResults.put(n, t);
+//        }
         print(String.format("**** Intra-DC nodes latency for community %d, Size: %d ****", communityId, nodes.size()));
-        HashMap<Node, HashMap<Node, Float>> lResults = new HashMap<>();
+        HashMap<Node, HashMap<Node, Double>> lResults = new HashMap<>();
         for (Node n1 : nodes.values()) {
-            lResults.put(n1, new HashMap<Node, Float>());
-            totalLResults.put(n1, new HashMap<Node, Float>());
+            lResults.put(n1, new HashMap<Node, Double>());
+//            totalLResults.put(n1, new HashMap<Node, Float>());
             for (Node n2 : nodes.values()) {
                 if (!n1.equals(n2)) {
-                    float l = computeLatency(getPath(n1, n2));
+                    TreeNode path = getPath(n1, n2);
+                    double l = computeLatency(path);
+                    latencies[round - MIN_ROUND].add(l);
                     totalLatencies++;
                     sumLatency += l;
                     print(String.format("%s\t%s\t%f", n1.getName(), n2.getName(), l));
                     lResults.get(n1).put(n2, l);
-                    totalLResults.get(n1).put(n2, l);
+                    minBws[round - MIN_ROUND].add(findMinBw(path, false).getBw());
+                    minSharedBws[round - MIN_ROUND].add(findMinBw(path, true).getSharedBw());
+//                    totalLResults.get(n1).put(n2, l);
                 }
             }
         }
 
-        if (printResult) {
-            CsvConvertor.writePairOutput(
-                    communityId,
-                    lResults,
-                    OUTPUT_DIR,
-                    String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()), "lresult");
-        }
-
-        print(String.format("**** Intra-DC nodes File Transfer for community %d, Size: %d ****", communityId, nodes.size()));
-        for (Node n1 : nodes.values()) {
-            pairBwResults.put(n1, new HashMap<Node, Float>());
-            for (Node n2 : nodes.values()) {
-                if (!n1.equals(n2)) {
-                    TreeNode p = getPath(n1, n2);
-                    float l = computeLatency(p);
-                    Edge minBwEdge = findMinBw(p, false);
-                    float minBw = minBwEdge.getBw();
-                    float bvTime = (IMAGE_SIZE / minBw) + (l / 1000);
-                    print(String.format("%s\t%s\t%f", n1.getName(), n2.getName(), bvTime));
-                    pairBwResults.get(n1).put(n2, bvTime);
-                }
-            }
-        }
-
-        print(String.format("**** Intra-DC concurrent nodes File Transfer for community %d, Size: %d ****", communityId, nodes.size()));
-        for (Node n1 : nodes.values()) {
-            pairSharedBwResults.put(n1, new HashMap<Node, Float>());
-            for (Node n2 : nodes.values()) {
-                if (!n1.equals(n2)) {
-                    TreeNode p = getPath(n1, n2);
-                    float l = computeLatency(p);
-                    Edge minBwEdge = findMinBw(p, true);
-                    float minBw = minBwEdge.getSharedBw();
-                    float ftTime = (IMAGE_SIZE / minBw) + (l / 1000);
-                    pairSharedBwResults.get(n1).put(n2, ftTime);
-                }
-            }
-        }
-
-        return results;
+//        if (printResult) {
+//            CsvConvertor.writePairOutput(
+//                    communityId,
+//                    lResults,
+//                    OUTPUT_DIR,
+//                    String.format("Controller: %s, DBMQ: %s", controller.getName(), dbmq.getName()), "lresult");
+//        }
+//        print(String.format("**** Intra-DC nodes File Transfer for community %d, Size: %d ****", communityId, nodes.size()));
+//        for (Node n1 : nodes.values()) {
+//            pairBwResults.put(n1, new HashMap<Node, Float>());
+//            for (Node n2 : nodes.values()) {
+//                if (!n1.equals(n2)) {
+//                    TreeNode p = getPath(n1, n2);
+//                    float l = computeLatency(p);
+//                    Edge minBwEdge = findMinBw(p, false);
+//                    float minBw = minBwEdge.getBw();
+//                    float bvTime = (IMAGE_SIZE / minBw) + (l / 1000);
+//                    print(String.format("%s\t%s\t%f", n1.getName(), n2.getName(), bvTime));
+//                    pairBwResults.get(n1).put(n2, bvTime);
+//                }
+//            }
+//        }
+//        print(String.format("**** Intra-DC concurrent nodes File Transfer for community %d, Size: %d ****", communityId, nodes.size()));
+//        for (Node n1 : nodes.values()) {
+//            pairSharedBwResults.put(n1, new HashMap<Node, Float>());
+//            for (Node n2 : nodes.values()) {
+//                if (!n1.equals(n2)) {
+//                    TreeNode p = getPath(n1, n2);
+//                    float l = computeLatency(p);
+//                    Edge minBwEdge = findMinBw(p, true);
+//                    float minBw = minBwEdge.getSharedBw();
+//                    float ftTime = (IMAGE_SIZE / minBw) + (l / 1000);
+//                    pairSharedBwResults.get(n1).put(n2, ftTime);
+//                }
+//            }
+//        }
     }
 
-    private static float bootVM(
+    private static double bootVM(
             Node controller,
             Node dbmq,
             Node compute, boolean sharedBw, boolean cached) {
@@ -386,15 +455,15 @@ public class Simulation {
         // compute controller-dbmq communication cost in terms of the latency
         print(String.format("Compute Node: %s", compute.getName()));
 
-        float controllerDbmqLatency = computeLatency(getPath(controller, dbmq));
-        float dbmqControllerLatency = computeLatency(getPath(dbmq, controller));
-        float computeDbmqLatency = computeLatency(getPath(compute, dbmq));
-        float dbmqComputeLatency = computeLatency(getPath(dbmq, compute));
-        float computeControllerLatency = computeLatency(getPath(compute, controller));
+        double controllerDbmqLatency = computeLatency(getPath(controller, dbmq));
+        double dbmqControllerLatency = computeLatency(getPath(dbmq, controller));
+        double computeDbmqLatency = computeLatency(getPath(compute, dbmq));
+        double dbmqComputeLatency = computeLatency(getPath(dbmq, compute));
+        double computeControllerLatency = computeLatency(getPath(compute, controller));
         TreeNode ccp = getPath(controller, compute);
-        float controllerComputeLatency = computeLatency(ccp);
+        double controllerComputeLatency = computeLatency(ccp);
 
-        float l = OpenStackUtil.computeBootVMLatency(
+        double l = OpenStackUtil.computeBootVMLatency(
                 controllerDbmqLatency,
                 controllerComputeLatency,
                 dbmqControllerLatency,
@@ -407,13 +476,13 @@ public class Simulation {
         }
 
         Edge minBwEdge = findMinBw(ccp, sharedBw);
-        float minBw;
+        double minBw;
         if (sharedBw) {
             minBw = minBwEdge.getSharedBw();
         } else {
             minBw = minBwEdge.getBw();
         }
-        float bvTime = ((IMAGE_SIZE / minBw) + (controllerComputeLatency / 1000)) + (l / 1000);
+        double bvTime = ((IMAGE_SIZE / minBw) + (controllerComputeLatency / 1000)) + (l / 1000);
         return bvTime;
     }
 
@@ -428,7 +497,7 @@ public class Simulation {
         return computes[r.nextInt(computes.length)];
     }
 
-    private static float computeLatency(TreeNode head) {
+    private static double computeLatency(TreeNode head) {
 
         if (head.getBranches().isEmpty()) {
             return 0;
@@ -446,7 +515,7 @@ public class Simulation {
     }
 
     private static Edge findMinBw(TreeNode head, boolean sharedBw) {
-        float minBw = Float.MAX_VALUE;
+        double minBw = Double.MAX_VALUE;
         Edge minBwEdge = null;
         while (!head.getBranches().isEmpty()) {
             Edge e = head.getEdges().get(0);

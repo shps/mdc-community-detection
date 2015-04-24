@@ -52,13 +52,13 @@ public class ModularityComputer {
     }
 
     private static double computeWeightedDirected(Graph g) {
-        double q = 0;
+        double q = 0.0;
         double m = g.getSumOfWeights();
 
         for (Node ni : g.getNodes()) {
             for (Node nj : g.getNodes()) {
                 if (ni.getCommunityId() == nj.getCommunityId()) {
-                    double a = 0;
+                    double a = 0.0;
                     Edge e = ni.getEdge(nj.getName());
                     if (e != null) {
                         a = (double) e.getWeight();

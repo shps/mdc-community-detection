@@ -1,12 +1,8 @@
 package se.kth.mcac;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.util.CsvConvertor;
-import se.kth.mcac.util.QmpsuConvertor;
 
 /**
  *
@@ -14,16 +10,22 @@ import se.kth.mcac.util.QmpsuConvertor;
  */
 public class NewClass {
 
-    static final String DEFAULT_FILE_DIR = "/home/ganymedian/Desktop/sant-upc/";
+    static final String DEFAULT_FILE_DIR = "/home/ganymedian/Desktop/sant-upc/samples/";
     static final String FILE_NAME = "graph-16march15-1000.json";
     static final boolean EXCLUDE_DISCONNECTED_NODES = true;
 
     public static void main(String[] args) throws IOException {
 //        QmpsuConvertor convertor = new QmpsuConvertor();
-//        Graph g = convertor.convertToGraph(DEFAULT_FILE_DIR + FILE_NAME, false, EXCLUDE_DISCONNECTED_NODES);
-//        CsvConvertor.convertAndWrite(g, DEFAULT_FILE_DIR + FILE_NAME);
-        
-        
-        System.out.println(Math.pow(500, (float)1/3));
+//        CsvConvertor convertor = new CsvConvertor();
+//
+//        Graph g = convertor.convertAndRead("/home/ganymedian/Desktop/sant-upc/samples/geonodes.csv", "/home/ganymedian/Desktop/sant-upc/samples/edges.csv");
+//        CsvConvertor.convertAndWriteWithGeoLocation(g, "/home/ganymedian/Desktop/sant-upc/samples/geoedges.csv");
+
+        String outputDir = "/home/ganymedian/Desktop/sant-upc/samples/experiments/simulation/final/samples/kmeans/";
+        String inputDir = "/home/ganymedian/Desktop/sant-upc/samples/experiments/simulation/final/samples/kmeans/clusters/";
+        String nodeFile = inputDir + "geonodes.csv";
+        for (int i = 2; i <= 9; i++) {
+            CsvConvertor.mergeNodeFileWithCommunityFile(nodeFile, String.format("%s%d.csv", inputDir, i), String.format("%s%d.csv", outputDir, i));
+        }
     }
 }

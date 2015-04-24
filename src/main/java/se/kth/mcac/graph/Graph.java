@@ -7,7 +7,17 @@ import java.util.HashSet;
  *
  * @author hooman
  */
-public class Graph {
+public class Graph implements Cloneable {
+
+    @Override
+    public Graph clone() {
+        Graph g = new Graph();
+        for (Node n : this.getNodes()) {
+            Node newNode = new Node(n);
+            g.addNode(newNode);
+        }
+        return g;
+    }
 
     private final HashMap<String, Node> nodes;
 
