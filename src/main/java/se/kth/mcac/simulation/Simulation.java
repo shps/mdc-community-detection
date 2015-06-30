@@ -28,7 +28,7 @@ import se.kth.mcac.util.ModularityComputer;
  */
 public class Simulation {
 
-    static final String EXPERIMENT_NAME = "cd";
+    static final String EXPERIMENT_NAME = "s";
     static boolean GEPHI_INPUT = false;
     static final String FILE_DIRECTORY = "/home/ganymedian/Desktop/sant-upc/samples/experiments/simulation/final/samples/" + EXPERIMENT_NAME + "/";
     static final String OUTPUT_DIR = "/home/ganymedian/Desktop/sant-upc/samples/experiments/simulation/final/results/" + EXPERIMENT_NAME + "/";

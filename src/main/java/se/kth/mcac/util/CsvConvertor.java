@@ -29,19 +29,18 @@ public class CsvConvertor {
     public static final String DIRECTED = "directed";
 
     public static void convertAndWrite(Graph g, String fileName) throws FileNotFoundException {
-        try (PrintWriter nodeWriter = new PrintWriter(fileName) //                ;
-                //                PrintWriter edgeWriter = new PrintWriter(outputDir + "edges.csv")
-                ) {
+        try (PrintWriter nodeWriter = new PrintWriter(fileName);
+                PrintWriter edgeWriter = new PrintWriter(fileName + "edges.csv")) {
             nodeWriter.println("Id,UName,Lat,Lon,community");
-//            edgeWriter.println("Source,Target,SrcUName, DstUName,Type,Id,BW,RTT,Weight");
+            edgeWriter.println("Source,Target,SrcUName, DstUName,Type,Id,BW,RTT,Weight");
             Node[] nodes = g.getNodes();
 
             for (Node n : nodes) {
                 nodeWriter.println(String.format("%s,%s,%f,%f,%d", n.getName(), n.getUName(), n.getLat(), n.getLon(), n.getCommunityId()));
-//                for (Edge e : n.getEdges()) {
-//                    edgeWriter.println(String.format("%s,%s,%s,%s,%s,%d,%f,%f,%f",
-//                            e.getSrc(), e.getDst(), e.getSrcUName(), e.getDstUName(), DIRECTED, e.getId(), e.getBw(), e.getLatency(), e.getWeight()));
-//                }
+                for (Edge e : n.getEdges()) {
+                    edgeWriter.println(String.format("%s,%s,%s,%s,%s,%d,%f,%f,%f",
+                            e.getSrc(), e.getDst(), e.getSrcUName(), e.getDstUName(), DIRECTED, e.getId(), e.getBw(), e.getLatency(), e.getWeight()));
+                }
             }
         }
     }

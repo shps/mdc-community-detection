@@ -36,9 +36,9 @@ public class Edge {
 //        this.weight = Math.pow(bw,1.5) / latency;
 //        this.weight = Math.pow(bw+1,4) / Math.pow(latency+1,0.5);
 //        this.weight = bw / latency
-//        this.weight = bw;
+        this.weight = bw;
 //        this.weight = 1.0 / latency;
-        this.weight = Math.pow(bw, 0.05) * (1 / Math.pow(latency, 0.05));
+//        this.weight = Math.pow(bw, 0.05) * (1 / Math.pow(latency, 0.05));
 //        this.weight = bw / Math.pow(latency + 1, 0.75);
     }
 

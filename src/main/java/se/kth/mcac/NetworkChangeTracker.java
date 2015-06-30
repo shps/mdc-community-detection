@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Random;
 import se.kth.mcac.graph.Edge;
 import se.kth.mcac.graph.Graph;
 import se.kth.mcac.graph.Node;
@@ -19,18 +20,20 @@ import se.kth.mcac.util.QmpsuConvertor;
 public class NetworkChangeTracker {
 
     static final String DEFAULT_FILE_DIR = "/home/ganymedian/Desktop/sant-upc/samples/";
+    static final String DEFAULT_OUTPUT_DIR = "/home/ganymedian/Desktop/sant-upc/samples/resampled/";
     static final String FILE_NAME = "graph-16march15-1000.json";
     static final boolean EXCLUDE_DISCONNECTED_NODES = true;
     static final String DELIMITER = ":";
     static final int FILE_RANGE = 24;
-    static final boolean DROP_BAD_EDGES = true;
+    static final boolean DROP_BAD_EDGES = false;
+    static Random r = new Random();
 
     public static void main(String[] args) throws IOException {
 
         HashMap<String, LinkedList<Edge>> eChanges = new HashMap<>();
         HashMap<String, Node> nodes = new HashMap<>();
 
-        for (int i = 1; i <= 26; i++) {
+        for (int i = 1; i <= FILE_RANGE; i++) {
             System.out.println(i);
             QmpsuConvertor convertor = new QmpsuConvertor();
             Graph g = convertor.convertToGraph(DEFAULT_FILE_DIR + String.valueOf(i) + ".json", false, EXCLUDE_DISCONNECTED_NODES);
@@ -53,9 +56,9 @@ public class NetworkChangeTracker {
 
         Graph g = buildGraph(nodes, eChanges);
         checkGraph(g);
-        CsvConvertor.convertAndWrite(g, DEFAULT_FILE_DIR + "avg-graph.csv");
+        CsvConvertor.convertAndWrite(g, DEFAULT_OUTPUT_DIR + "avg-graph.csv");
 
-        try (PrintWriter nodeWriter = new PrintWriter(DEFAULT_FILE_DIR + "changes.csv")) {
+        try (PrintWriter nodeWriter = new PrintWriter(DEFAULT_OUTPUT_DIR + "changes.csv")) {
             Iterator<Map.Entry<String, LinkedList<Edge>>> iterator = eChanges.entrySet().iterator();
 
             while (iterator.hasNext()) {
@@ -103,15 +106,21 @@ public class NetworkChangeTracker {
             Edge e = es.getFirst();
             float avgBw = bwSum / (float) bwCounter;
             float avgL = lSum / (float) lCounter;
-            if (Float.isNaN(avgL) || Float.isNaN(avgBw)) {
+            if (DROP_BAD_EDGES && (Float.isNaN(avgL) || Float.isNaN(avgBw))) {
                 System.out.println(String.format("Dropped edge %s:%s.", e.getSrcUName(), e.getDstUName()));
                 continue;
+            }
+            if (Float.isNaN(avgL)) {
+                avgL = r.nextInt(20) + 200;
+            }
+            if (Float.isNaN(avgBw)) {
+                avgBw = r.nextFloat();
             }
             e.setBw(avgBw);
             e.setLatency(avgL);
             e.setSrcId(e.getSrcUName());
             e.setDstId(e.getDstUName());
-            
+
             Node n;
             if (g.containsNode(e.getSrcUName())) {
                 n = g.getNode(e.getSrcUName());
@@ -130,15 +139,21 @@ public class NetworkChangeTracker {
     }
 
     private static void checkGraph(Graph g) {
-        for (Node n : g.getNodes())
-        {
-            for (Edge e : n.getEdges())
-            {
+        for (Node n : g.getNodes()) {
+            for (Edge e : n.getEdges()) {
                 Node dst = g.getNode(e.getDst());
-                if (dst.getEdge(n.getName()) == null)
-                {
-                    n.removeEdge(e);
-                    System.out.println(String.format("Single Connection from %s to %s is dropped!!", n.getName(), dst.getName()));
+                if (dst.getEdge(n.getName()) == null) {
+                    if (DROP_BAD_EDGES) {
+                        n.removeEdge(e);
+                        System.out.println(String.format("Single Connection from %s to %s is dropped!!", n.getName(), dst.getName()));
+                    } else {
+                        Edge dstEdge = new Edge(r.nextLong(), dst.getName(), n.getName());
+                        dstEdge.setBw(e.getBw());
+                        dstEdge.setLatency(e.getLatency());
+                        dstEdge.setSrcUName(dst.getUName());
+                        dstEdge.setDstUName(n.getUName());
+                        dst.addEdge(dstEdge);
+                    }
                 }
             }
         }

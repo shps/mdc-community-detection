@@ -25,6 +25,7 @@ public class QmpsuConvertor {
     public static final String RTT = "rtt";
     public static final String NODE_NAME = "id";
     public static final String UNAME = "name";
+    public static final float DEFAULT_LAT = 0;
     public Random random = new Random();
 
     private final List<Node> noLocationNodes = new LinkedList<>();
@@ -98,6 +99,8 @@ public class QmpsuConvertor {
         } else {
             System.out.println(String.format("node %s: no position is available.", jNode.get(NODE_NAME)));
             noLocationNodes.add(node);
+            node.setLat(DEFAULT_LAT);
+            node.setLon(DEFAULT_LAT);
         }
 
         boolean fullInfo = true;
